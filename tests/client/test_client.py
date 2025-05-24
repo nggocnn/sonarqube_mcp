@@ -8,7 +8,7 @@ import requests
 import logging
 from unittest.mock import patch, Mock
 from dotenv import load_dotenv
-from src.client.client import SonarQubeClient
+from src.client.sonarqube import SonarQubeClient
 
 logging.basicConfig(level=logging.DEBUG)
 
