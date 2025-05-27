@@ -14,6 +14,17 @@ class SonarQubeClient:
         organization: Optional[str] = None,
         timeout: float = 10.0,
     ):
+        """Initialize a SonarQube client instance.
+
+        Args:
+            base_url (str): The base URL of the SonarQube server (e.g., 'https://sonarqube.example.com').
+            token (str): The authentication token for accessing the SonarQube API.
+            organization (Optional[str], optional): The organization key for organization-specific requests. Defaults to None.
+            timeout (float, optional): The timeout for API requests in seconds. Defaults to 10.0.
+        
+        Returns:
+            None
+        """
         self.base_url = base_url.rstrip("/")
         self.token = token
         self.organization = organization
@@ -36,6 +47,14 @@ class SonarQubeClient:
         return instance
 
     def __setup(self):
+        """Set up the SonarQube client session and validate connection.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.session = httpx.Client(
             base_url=self.base_url,
             headers={"Authorization": f"Bearer {self.token}"},
@@ -54,6 +73,22 @@ class SonarQubeClient:
         raw_response: bool = False,
         timeout: Optional[float] = None,
     ) -> Any:
+        """Send an HTTP request to a SonarQube API endpoint.
+
+        Args:
+            endpoint (str): The API endpoint path (e.g., '/api/system/health').
+            method (str, optional): The HTTP method to use (e.g., 'GET', 'POST'). Defaults to 'GET'.
+            params (Optional[Any], optional): Query parameters for the request. Defaults to None.
+            payload (Optional[Dict[str, Any]], optional): The request body for POST requests. Defaults to None.
+            content_type (str, optional): The Content-Type header for the request (e.g., 'application/json'). Defaults to 'application/json'.
+            health_check (bool, optional): Whether to check client connection status before making the request. Defaults to True.
+            raw_response (bool, optional): If True, return the raw response text; otherwise, parse JSON. Defaults to False.
+            timeout (Optional[float], optional): Custom timeout for this request in seconds. Defaults to None (uses instance timeout).
+
+        Returns:
+            Any: The parsed JSON response if successful and raw_response is False, raw text if raw_response is True,
+                or a dictionary with 'error' and 'details' keys on failure.
+        """
         if health_check and not self.connected:
             return {
                 "error": "SonarQube client is not healthy",
@@ -133,10 +168,13 @@ class SonarQubeClient:
             self.session.aclose()
 
     def __validate_connection(self) -> bool:
-        """Validate SonarQube connection and access token.
+        """Validate connection and authentication with SonarQube server.
+
+        Args:
+            None
 
         Returns:
-            bool: True if connection and authentication are valid, False otherwise.
+            bool: True if connection and authentication are successful, False otherwise.
         """
         if not self.base_url or not self.token:
             self.connection_message = "Missing SONARQUBE_URL or SONARQUBE_TOKEN"
@@ -191,8 +229,16 @@ class SonarQubeClient:
     def get_system_health(self) -> Dict[str, Any]:
         """Retrieve SonarQube system health status.
 
+        Args:
+            None
+
         Returns:
-            Dict[str, Any]: System health information with mapped status descriptions.
+            Dict[str, Any]: Dictionary with system health details, including:
+                - health: Overall status ("GREEN", "YELLOW", "RED", or None).
+                - health_status: Human-readable status description.
+                - nodes: List of application node details with their health and status.
+                - causes: List of reasons for the current health status, if applicable.
+                - On error, returns a dictionary with 'error' and 'details' keys.
         """
         endpoint = "/api/system/health"
         response = self.__make_request(endpoint=endpoint)
@@ -243,8 +289,16 @@ class SonarQubeClient:
     def get_system_status(self) -> Dict[str, Any]:
         """Retrieve SonarQube system status.
 
+        Args:
+            None
+
         Returns:
-            Dict[str, Any]: System status information with mapped status description.
+            Dict[str, Any]: Dictionary containing system status information, including:
+                - id: Unique identifier for the SonarQube instance.
+                - version: SonarQube server version.
+                - status: The running status ("STARTING", "UP", "DOWN", "RESTARTING", "DB_MIGRATION_NEEDED", "DB_MIGRATION_RUNNING").
+                - system_status: Human-readable description of the status.
+                - On error, returns a dictionary with 'error' and 'details' keys.
         """
         endpoint = "/api/system/status"
         response = self.__make_request(endpoint=endpoint)
@@ -274,10 +328,13 @@ class SonarQubeClient:
         return response
 
     def system_ping(self) -> bool:
-        """Ping the SonarQube server to check if it is reachable.
+        """Check if the SonarQube server is reachable by sending a ping request.
+
+        Args:
+            None
 
         Returns:
-            bool: True if the server responds with 'pong', False otherwise.
+            bool: True if the server responds with 'pong', False if the response is invalid or an error occurs.
         """
         endpoint = "/api/system/ping"
         response = self.__make_request(endpoint=endpoint, raw_response=True)
@@ -301,17 +358,19 @@ class SonarQubeClient:
         page: int = 1,
         page_size: int = 100,
         search: Optional[str] = None,
+        projects: Optional[str] = None,
     ) -> Dict[str, Any]:
         """List SonarQube projects with optional filters.
 
         Args:
-            analyzed_before: Optional ISO-8601 date string to filter projects analyzed before this date.
-            page: Page number for pagination (must be positive).
-            page_size: Number of projects per page (must be positive, max 500).
-            search: Optional search query to filter projects by name.
+            analyzed_before (Optional[str], optional): ISO-8601 date string (e.g., '2023-10-19') to filter projects analyzed before this date. Defaults to None.
+            page (int, optional): Page number for pagination (must be positive). Defaults to 1.
+            page_size (int, optional): Number of projects per page (must be positive, max 500). Defaults to 100.
+            search (Optional[str], optional): Search query to filter projects by name or key. Defaults to None.
+            projects (Optional[str], optional): Comma-separated list of project keys to retrieve specific projects. Defaults to None.
 
         Returns:
-            Dict[str, Any]: Project list or error response.
+            Dict[str, Any]: Dictionary containing project list and pagination details, or an error response with 'error' and 'details' keys.
         """
 
         if page < 1:
@@ -334,6 +393,7 @@ class SonarQubeClient:
             "p": page,
             "ps": page_size,
             "q": search,
+            "projects": projects,
         }
 
         params = {k: v for k, v in params.items() if v is not None}
@@ -346,14 +406,14 @@ class SonarQubeClient:
         return response
 
     def list_user_projects(self, page: int = 1, page_size: int = 100) -> Dict[str, Any]:
-        """List projects accessible to the authenticated user.
+        """Retrieve a list of SonarQube projects for which the authenticated user has 'Administer' permission.
 
         Args:
-            page: Page number for pagination (must be positive).
-            page_size: Number of projects per page (must be positive, max 500).
+            page (int, optional): Page number for pagination (must be positive). Defaults to 1.
+            page_size (int, optional): Number of projects per page (must be positive, max 500). Defaults to 100.
 
         Returns:
-            Dict[str, Any]: User project list or error response.
+            Dict[str, Any]: Dictionary containing a list of projects and pagination details, or an error response.
         """
         if page < 1:
             logger.error("page must be positive integers")
@@ -381,13 +441,12 @@ class SonarQubeClient:
     def list_user_scannable_projects(
         self, search: Optional[str] = None
     ) -> Dict[str, Any]:
-        """List scannable projects for the authenticated user.
+        """Retrieve a list of SonarQube projects that the authenticated user has permission to scan.
 
         Args:
-            search: Optional search query to filter projects by name.
+            search (Optional[str], optional): Search query to filter projects by name or key. Defaults to None.
 
-        Returns:
-            Dict[str, Any]: Scannable project list or error response.
+        Returns: Dict[str, Any]: Dictionary containing a list of scannable projects, or an error response.
         """
         endpoint = "/api/projects/search_my_scannable_projects"
         params = {"q": search} if search else {}
@@ -407,7 +466,18 @@ class SonarQubeClient:
         page: int = 1,
         page_size: int = 100,
     ):
+        """Retrieve a list of analyses for a specified SonarQube project, with optional filters.
 
+        Args:
+            project_key (str): The key of the project to retrieve analyses for.
+            category (Optional[str], optional): Event category to filter analyses (e.g., 'VERSION', 'QUALITY_GATE', 'OTHER'). Defaults to None.
+            branch (Optional[str], optional): Branch key to filter analyses (not available in Community Edition). Defaults to None.
+            page (int, optional): Page number for pagination (must be positive). Defaults to 1.
+            page_size (int, optional): Number of analyses per page (must be positive, max 500). Defaults to 100.
+
+        Returns:
+            Dict[str, Any]: Dictionary containing a list of project analyses and pagination details, or an error response.
+        """
         if page < 1:
             logger.error("page must be positive integers")
             page = 1
@@ -458,28 +528,28 @@ class SonarQubeClient:
         tags: Optional[str] = None,
         types: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Search for issues in SonarQube.
+        """Search for issues in SonarQube projects with specified filters.
 
         Args:
-            project_keys: List of project keys to filter issues.
-            additional_fields: Additional fields to include in response.
-            assigned: Filter issues by assignment status.
-            assignees: List of assignees to filter issues.
-            authors: List of authors to filter issues.
-            branch: Branch to filter issues.
-            issue_statuses: List of issue statuses to filter.
-            issues: List of issue keys to filter.
-            page: Page number for pagination (must be positive).
-            page_size: Number of issues per page (must be positive, max 500).
-            resolutions: List of resolutions to filter issues.
-            resolved: Filter issues by resolved status.
-            scopes: List of scopes to filter issues.
-            severities: List of severities to filter issues.
-            tags: List of tags to filter issues.
-            types: List of issue types to filter.
+            project_keys (str): Comma-separated list of project keys to search for issues.
+            additional_fields (Optional[str], optional): Comma-separated list of optional fields to include in the response (e.g., 'comments', 'rules'). Defaults to None.
+            assigned (Optional[bool], optional): Filter for assigned (True) or unassigned (False) issues. Defaults to None.
+            assignees (Optional[str], optional): Comma-separated list of assignee logins, or '__me__' for the current user. Defaults to None.
+            authors (Optional[str], optional): Comma-separated list of SCM author accounts. For example: author=torvalds@linux-foundation.org&author=linux@fondation.org . Defaults to None.
+            branch (Optional[str], optional): Branch key to filter issues (not available in Community Edition). Defaults to None.
+            issue_statuses (Optional[str], optional): Comma-separated list of issue statuses (e.g., 'OPEN', 'CONFIRMED', 'FIXED'). Defaults to None.
+            issues (Optional[str], optional): Comma-separated list of issue keys to retrieve specific issues. Defaults to None.
+            page (int, optional): Page number for pagination (must be positive). Defaults to 1.
+            page_size (int, optional): Number of issues per page (must be positive, max 500). Defaults to 100.
+            resolutions (Optional[str], optional): Comma-separated list of resolutions (e.g., 'FIXED', 'FALSE-POSITIVE'). Defaults to None.
+            resolved (Optional[bool], optional): Filter for resolved (True) or unresolved (False) issues. Defaults to None.
+            scopes (Optional[str], optional): Comma-separated list of scopes (e.g., 'MAIN', 'TEST'). Defaults to None.
+            severities (Optional[str], optional): Comma-separated list of severities (e.g., 'BLOCKER', 'CRITICAL'). Defaults to None.
+            tags (Optional[str], optional): Comma-separated list of issue tags (e.g., 'security', 'convention'). Defaults to None.
+            types (Optional[str], optional): Comma-separated list of issue types (e.g., 'BUG', 'VULNERABILITY'). Defaults to None.
 
         Returns:
-            Dict[str, Any]: Issue list or error response.
+            Dict[str, Any]: Dictionary containing a list of issues and pagination details, or an error response.
         """
         if page < 1:
             logger.error("page must be positive integers")
@@ -532,15 +602,16 @@ class SonarQubeClient:
         page: Optional[int] = 1,
         page_size: Optional[int] = 100,
     ) -> Dict[str, Any]:
-        """Retrieve SCM authors for a project.
+        """Retrieve SCM authors for issues in a SonarQube project, with optional filtering.
 
         Args:
-            project_key: Optional project key to filter authors.
-            page: Page number for pagination (must be positive).
-            page_size: Number of authors per page (must be positive, max 500).
+            project_key (Optional[str], optional): Project key to filter authors. Defaults to None.
+            query (Optional[str], optional): Search query to filter authors by SCM account (partial match). Defaults to None.
+            page (int, optional): Page number for pagination (must be positive). Defaults to 1.
+            page_size (int, optional): Number of authors per page (must be positive, max 100). Defaults to 100.
 
         Returns:
-            Dict[str, Any]: List of SCM authors or error response.
+            Dict[str, Any]: Dictionary containing a list of SCM authors, or an error response.
         """
         if page < 1:
             logger.error("page must be positive integers")
@@ -567,10 +638,13 @@ class SonarQubeClient:
         return response
 
     def get_metrics_type(self) -> Dict[str, Any]:
-        """Retrieve available metric types.
+        """Retrieve a list of available metric types in SonarQube.
+
+        Args:
+            None
 
         Returns:
-            Dict[str, Any]: List of metric types or error response.
+            Dict[str, Any]: Dictionary containing a list of metric types, or an error response.
         """
         endpoint = "/api/metrics/types"
         response = self.__make_request(endpoint=endpoint)
@@ -584,21 +658,23 @@ class SonarQubeClient:
     def get_metrics(
         self, page: Optional[int] = 1, page_size: Optional[int] = 100
     ) -> Dict[str, Any]:
-        """Retrieve available metrics.
+        """Search for available metrics in SonarQube.
 
         Args:
-            page: Page number for pagination (must be positive).
-            page_size: Number of metrics per page (must be positive, max 500).
+            page (int, optional): Page number for pagination (must be positive). Defaults to 1.
+            page_size (int, optional): Number of metrics per page (must be positive, max 500). Defaults to 100.
 
         Returns:
-            Dict[str, Any]: List of metrics or error response.
+            Dict[str, Any]: Dictionary containing a list of metrics and pagination details, or an error response.
         """
-        if page < 1 or page_size < 1:
-            logger.error("Page and page_size must be positive integers")
-            return {
-                "error": "Invalid parameters",
-                "details": "Page and page_size must be positive",
-            }
+        if page < 1:
+            logger.error("page must be positive integers")
+            page = 1
+
+        if page_size < 1:
+            logger.error("page_size must be positive integers")
+            page_size = 100
+
         if page_size > 500:
             logger.warning("Page size capped at 500 by SonarQube API")
             page_size = 500
@@ -681,32 +757,32 @@ class SonarQubeClient:
 
     def get_quality_gates_project_status(
         self,
+        project_key: Optional[str] = None,
         analysis_id: Optional[str] = None,
         branch: Optional[str] = None,
-        project_key: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Retrieve quality gate status for a project or analysis.
 
         Args:
+            project_key: Key of the project.
             analysis_id: ID of the analysis.
             branch: Branch name.
-            project_key: Key of the project.
 
         Returns:
             Dict[str, Any]: Quality gate status or error response.
         """
-        if not (analysis_id or project_key):
-            logger.error("At least one of analysis_id or project_key must be provided")
+        if (project_key is None) == (analysis_id is None):
+            logger.error("Exactly one of analysis_id or project_key must be provided.")
             return {
                 "error": "Invalid parameters",
-                "details": "At least one parameter must be provided",
+                "details": "Exactly one of analysis_id or project_key must be provided.",
             }
 
         endpoint = "/api/qualitygates/project_status"
         params = {
+            "projectKey": project_key,
             "analysisId": analysis_id,
             "branch": branch,
-            "projectKey": project_key,
         }
         params = {k: v for k, v in params.items() if v is not None}
 
@@ -720,15 +796,15 @@ class SonarQubeClient:
     def get_source(
         self, file_key: str, start: Optional[int] = None, end: Optional[int] = None
     ) -> Dict[str, Any]:
-        """Retrieve source code for a file.
+        """Retrieve source code for a specified file in a SonarQube project.
 
         Args:
-            file_key: Key of the file.
-            start: Starting line number (must be positive if provided).
-            end: Ending line number (must be positive and >= start if provided).
+            file_key (str): Key of the file to retrieve source code for (e.g., 'my_project:src/main/java/Example.java').
+            start (Optional[int], optional): Starting line number (must be positive if provided). Defaults to None.
+            end (Optional[int], optional): Ending line number (must be positive and >= start if provided). Defaults to None.
 
         Returns:
-            Dict[str, Any]: Source code or error response.
+            Dict[str, Any]: Dictionary containing source code lines, or an error response.
         """
         if not file_key:
             logger.error("File key must not be empty")
@@ -765,16 +841,17 @@ class SonarQubeClient:
         end: Optional[int] = None,
         commits_by_line: Optional[bool] = False,
     ) -> Dict[str, Any]:
-        """Retrieve SCM information for a file.
+        """Retrieve SCM information for a specified file in a SonarQube project.
 
         Args:
-            file_key: Key of the file.
-            start: Starting line number (must be positive if provided).
-            end: Ending line number (must be positive and >= start if provided).
-            commits_by_line: Whether to include commits by line.
+            file_key (str): Key of the file to retrieve SCM information for (e.g., 'my_project:src/main/java/Example.java').
+            start (Optional[int], optional): Starting line number (must be positive, starts at 1). Defaults to None.
+            end (Optional[int], optional): Ending line number (must be positive and >= start, inclusive). Defaults to None.
+            commits_by_line (Optional[bool], optional): If True, include commits for each line even if consecutive lines share
+                the same commit; if False, group lines by commit. Defaults to False.
 
         Returns:
-            Dict[str, Any]: SCM information or error response.
+            Dict[str, Any]: Dictionary containing SCM information for the file, or an error response.
         """
         if not file_key:
             logger.error("File key must not be empty")
@@ -811,14 +888,14 @@ class SonarQubeClient:
             )
         return response
 
-    def get_source_raw(self, file_key) -> str:
-        """Retrieve raw source code for a file.
+    def get_source_raw(self, file_key) -> Any:
+        """Retrieve raw source code for a specified file in a SonarQube project as plain text.
 
         Args:
-            file_key: Key of the file.
+            file_key (str): Key of the file to retrieve raw source code for (e.g., 'my_project:src/main/java/Example.java').
 
         Returns:
-            str: Raw source code or error response as a string.
+            str: Raw source code as a plain text string, or an error message as a string if the request fails.
         """
         if not file_key:
             logger.error("File key must not be empty")
