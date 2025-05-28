@@ -349,14 +349,15 @@ def get_issues(
     """
     Search for issues in SonarQube projects with customizable filters.
 
-    Retrieves a paginated list of issues, filtered by project, status, severity, and other criteria.
+    Retrieves a paginated list of issues, filtered by components, status, severity, and other criteria.
+    A component can be a portfolio, project (use project key as a component value), module, directory (use project key:directory as a component value) or file (use project key:file path as a component value).
 
     Args:        
         additional_fields (Optional[str], optional): Comma-separated fields to include (e.g., 'comments,rules'). Defaults to None. Possible values: _all, comments, languages, rules, ruleDescriptionContextKey, transitions, actions, users.
         assigned (Optional[bool], optional): True for assigned issues, False for unassigned. Defaults to None.
         assignees (Optional[str], optional): Comma-separated assignee logins (e.g., 'user1,__me__'). Defaults to None.  The value '__me__' can be used as a placeholder for user who performs the request.
         authors (Optional[str], optional): Comma-separated SCM author accounts (e.g., 'author1@example.com'). Defaults to None.
-        components (Optional[str], optional): components (Optional[str], optional): Comma-separated list of component keys. Retrieve issues associated to a specific list of components (and all its descendants). A component can be a portfolio, project (use project_key), module, directory (use project_key:directory) or file (use_project_key:file_path).
+        components (Optional[str], optional): components (Optional[str], optional): Comma-separated list of component keys. Retrieve issues associated to a specific list of components (and all its descendants). A component can be a portfolio, project (use project key as a component value), module, directory (use project key:directory as a component value) or file (use project key:file path as a component value).
         issue_statuses (Optional[str], optional): Comma-separated statuses (e.g., 'OPEN,FIXED'). Defaults to None. Possible values: OPEN, CONFIRMED, FALSE_POSITIVE, ACCEPTED, FIXED.
         issues (Optional[str], optional): Comma-separated issue keys (e.g., '5bccd6e8-f525-43a2-8d76-fcb13dde79ef'). Defaults to None.
         page (int, optional): Page number for pagination (positive integer). Defaults to 1.
@@ -634,6 +635,7 @@ def get_rules(
     page_size: int = 100,
     severities: Optional[str] = None,
     statuses: Optional[str] = None,
+    languages: Optional[str] = None,
     types: Optional[str] = None,
 ):
     """Retrieve for rules in SonarQube.
@@ -645,6 +647,7 @@ def get_rules(
         page_size (int, optional): Number of rules per page (positive integer, max 500, default=100).
         severities (Optional[str], optional): Comma-separated list of severities (e.g., 'BLOCKER,CRITICAL'). Defaults to None. Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
         statuses (Optional[str], optional): Comma-separated list of statuses (e.g., 'BETA,READY'). Defaults to None. Possible values: BETA, DEPRECATED, READY, REMOVED.
+        languages (Optional[str], optional): Comma-separated list of languages (e.g. 'java,js'). Defaults to None
         types (Optional[str], optional): Comma-separated list of rule types (e.g., 'BUG,CODE_SMELL'). Defaults to None. Possible values: CODE_SMELL, BUG, VULNERABILITY, SECURITY_HOTSPOT.
 
     Returns:
@@ -655,6 +658,7 @@ def get_rules(
         page_size=page_size,
         severities=severities,
         statuses=statuses,
+        languages=languages,
         types=types,
     )
 
@@ -817,5 +821,32 @@ def get_source_issue_snippets(issue_key: str):
     """
 
     response = sonar_client.get_source_issue_snippets(issue_key=issue_key)
+
+    return response
+
+
+@mcp.tool(description="""
+Retrieve issues, rule details, source code snippets, and full file source for a specific file in a SonarQube project.
+Parameters:
+- project_key (Required[str], project key, e.g., 'my_project')
+- file_path (Required[str], file path, e.g., 'src/main/java/Example.java')
+Returns: Dictionary with issues (including rule details and snippets) and full file source.
+Use to gather comprehensive issue data for a file to recommend code fixes.
+""")
+def get_file_issues_information(project_key: str, file_path: str) -> Dict[str, Any]:
+    """Retrieve issues, rule details, source code snippets, and full file source for a specific file in a SonarQube project.
+
+    Calls the SonarQube client to fetch all issues for the specified file, including detailed rule information,
+    source code snippets around issue locations, and the full source code of the file to provide context for
+    recommending fixes. Handles cases where snippet responses lack `startLine` and `endLine` by inferring them.
+
+    Args:
+        project_key (str): The key of the project (e.g., 'my_project'). Must be non-empty.
+        file_path (str): The file path within the project (e.g., 'src/main/java/Example.java'). Must be non-empty.
+
+    Returns:
+        Dict[str, Any]: A dictionary containing issues with their rule details, source code snippets, and full file source.
+    """
+    response = sonar_client.get_file_issues_information(project_key=project_key, file_path=file_path)
 
     return response
