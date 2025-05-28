@@ -18,92 +18,209 @@ sonar_client = SonarQubeClient.create(
 )
 
 
-@mcp.tool(description="Check SonarQube system health")
+@mcp.tool(
+    description="""
+Check the health status of a SonarQube server.
+Returns: Dictionary with health status ('GREEN', 'YELLOW', 'RED') and node details.
+- GREEN: SonarQube is fully operational
+- YELLOW: SonarQube is usable, but it needs attention in order to be fully operational
+- RED: SonarQube is not operational
+Use to monitor server availability and performance.
+"""
+)
 def get_system_health() -> Dict[str, Any]:
-    """
-    Retrieves SonarQube system health status.
+    """Retrieve the health status of the SonarQube server.
+
+    Args:
+        None
+
     Returns:
-        Dictionary with health status and node details.
+        Dict[str, Any]: A dictionary containing the health status
     """
     response = sonar_client.get_system_health()
     return response
 
 
-@mcp.tool(description="Check SonarQube system status")
+@mcp.tool(
+    description="""
+Retrieve the operational status of a SonarQube server.
+Returns: Dictionary with status ('UP', 'DOWN', 'STARTING'), version, and description.
+- STARTING: SonarQube Web Server is up and serving some Web Services (eg. api/system/status) but initialization is still ongoing
+- UP: SonarQube instance is up and running
+- DOWN: SonarQube instance is up but not running because migration has failed or some other reason (check logs).
+- RESTARTING: SonarQube instance is still up but a restart has been requested.
+- DB_MIGRATION_NEEDED: database migration is required.
+- DB_MIGRATION_RUNNING: DB migration is running.
+Use to verify if the server is fully operational.
+"""
+)
 def get_system_status() -> Dict[str, Any]:
-    """
-    Retrieves SonarQube system status.
+    """Retrieve the operational status of the SonarQube server.
+
+    Provides the current system status (e.g., 'UP', 'DOWN', 'STARTING') with a human-readable description.
+
+    Args:
+        None
+
     Returns:
-        Dictionary with system status and description.
+        Dict[str, Any]: A dictionary with the system status, version, and description.
     """
     response = sonar_client.get_system_status()
     return response
 
 
-@mcp.tool(description="Ping SonarQube server")
+@mcp.tool(
+    description="""
+Ping the SonarQube server to verify connectivity.
+Parameters: None
+Returns: Boolean (True for 'pong', False otherwise).
+Use for quick server reachability checks before other operations.
+"""
+)
 def system_ping() -> bool:
-    """
-    Pings the SonarQube server to check if it is reachable.
+    """Ping the SonarQube server to check if it is reachable.
+
+    Sends a simple request to confirm server availability.
+
+    Args:
+        None
+
     Returns:
-        List with a single string indicating "pong" or an error message.
+        bool: True if the server responds with 'pong', False otherwise.
     """
     response = sonar_client.system_ping()
     return response
 
 
-@mcp.tool(description="List all SonarQube projects")
-def list_projects(search: Optional[str] = None, page: int = 1, page_size: int = 100) -> Dict[str, Any]:
-    """
-    Lists all projects in SonarQube.
+@mcp.tool(
+    description="""
+Search for SonarQube projects with optional name or key filtering.
+Parameters:
+- projects (Optional[str], comma-separated project keys, e.g., 'my_project,other_project')
+- search (Optional[str], partial project name or key, e.g., 'my_proj')
+- analyzed_before (Optional[str], date or datetime for last analysis, e.g., '2017-10-19' or '2017-10-19T13:00:00+0200')
+- page (Optional[int], positive integer, default=1)
+- page_size (Optional[int], positive integer, max 500, default=100)
+Exactly one of projects or search must be provided.
+Returns: Dictionary with project list and pagination info.
+Use to find projects by name, key, or last analysis date.
+"""
+)
+def list_projects(
+    projects: Optional[str] = None,
+    search: Optional[str] = None,
+    analyzed_before: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 100,
+) -> Dict[str, Any]:
+    """Search for projects in SonarQube, with optional filtering by name.
+
+    Retrieves a paginated list of projects the authenticated user can access.
+
     Args:
-        page: Page number for pagination (default: 1).
-        page_size: Number of projects per page (default: 100, max: 500).
+        projects (Optional[str], optional): Comma-separated list of project keys to filter results (e.g., 'my_project,other_project'). Defaults to None.
+        search (Optional[str], optional): Partial project name or key to filter results (e.g., 'my_proj'). Defaults to None.
+        analyzed_before (Optional[str], optional): Filter projects where the last analysis of all branches is older than this date (exclusive, server timezone). Accepts date ('YYYY-MM-DD') or datetime ('YYYY-MM-DDThh:mm:ssZ'). Example: '2017-10-19' or '2017-10-19T13:00:00+0200'. Defaults to None.
+        page (int, optional): Page number for pagination (positive integer). Defaults to 1.
+        page_size (int, optional): Number of projects per page (positive integer, max 500). Defaults to 100.
+
     Returns:
-        List of projects.
+        Dict[str, Any]: A dictionary with project details and pagination info.
     """
-    response = sonar_client.list_projects(page=page, page_size=page_size, search=search)
+    response = sonar_client.list_projects(
+        analyzed_before=analyzed_before,
+        page=page,
+        page_size=page_size,
+        search=search,
+        projects=projects,
+    )
     return response
 
 
-@mcp.tool(description="List projects accessible to the authenticated user")
+@mcp.tool(
+    description="""
+List projects accessible to the authenticated user
+Parameters:
+- page (Optional[int], positive integer, default=1)
+- page_size (Optional[int], positive integer, max 500, default=100)
+Returns: Dictionary with project list and pagination info.
+Use to view projects the user can administer.
+"""
+)
 def list_user_projects(page: int = 1, page_size: int = 100) -> Dict[str, Any]:
-    """
-    Lists projects accessible to the authenticated user.
+    """Lists projects accessible to the authenticated user.
+
+    Retrieves a paginated list of projects the user can administer.
+
     Args:
-        page: Page number for pagination (default: 1).
-        page_size: Number of projects per page (default: 100, max: 500).
+        page (int, optional): Page number for pagination (positive integer). Defaults to 1.
+        page_size (int, optional): Number of projects per page (positive integer, max 500). Defaults to 100.
+
     Returns:
-        List of strings with project name and key in the format "name (key)".
+        Dict[str, Any]: A dictionary with project details and pagination info.
     """
     response = sonar_client.list_user_projects(page=page, page_size=page_size)
     return response
 
 
-@mcp.tool(description="List scannable projects for the authenticated user")
+@mcp.tool(
+    description="""
+List projects the authenticated user can scan.
+Parameters:
+- search (Optional[str], partial project name or key, e.g., 'my_proj')
+Returns: Dictionary with project list.
+Use to identify projects where the user can perform analysis.
+"""
+)
 def list_user_scannable_projects(search: Optional[str] = None) -> Dict[str, Any]:
-    """
-    Lists scannable projects for the authenticated user.
+    """List projects the authenticated user has permission to scan.
+
+    Retrieves a list of projects where the user can perform analysis (scanning).
+
     Args:
-        search: Optional search query to filter projects by name.
+        search (Optional[str], optional): Partial project name or key to filter results. Defaults to None.
+
     Returns:
-        List of strings with project name and key in the format "name (key)".
+        Dict[str, Any]: A dictionary with project keys.
     """
     response = sonar_client.list_user_scannable_projects(search=search)
     return response
 
 
-@mcp.tool(description="List project analyses")
+@mcp.tool(
+    description="""
+List analyses for a SonarQube project with optional filters.
+Parameters:
+- project_key (Required[str], project key, e.g., 'my_project')
+- category (Optional[str], event category, e.g., 'VERSION', 'QUALITY_GATE'). Possible values: VERSION, OTHER, QUALITY_PROFILE, QUALITY_GATE, DEFINITION_CHANGE, ISSUE_DETECTION, SQ_UPGRADE
+- page (Optional[int], positive integer, default=1)
+- page_size (Optional[int], positive integer, max 500, default=100)
+Returns: Dictionary with analysis list and pagination info.
+Use to review a project's analysis history.
+"""
+)
 def list_project_analyses(
     project_key: str,
     category: Optional[str] = None,
-    branch: Optional[str] = None,
     page: int = 1,
     page_size: int = 100,
 ):
+    """List analyses for a specified SonarQube project, with optional filters.
+
+    Retrieves a paginated list of analyses for a project, optionally filtered by event category or branch.
+
+    Args:
+        project_key (str): The key of the project (e.g., 'my_project').
+        category (Optional[str], optional): Event category to filter analyses (e.g., 'VERSION', 'QUALITY_GATE'). Possible values: VERSION, OTHER, QUALITY_PROFILE, QUALITY_GATE, DEFINITION_CHANGE, ISSUE_DETECTION, SQ_UPGRADE. Defaults to None.
+        page (int, optional): Page number for pagination (positive integer). Defaults to 1.
+        page_size (int, optional): Number of analyses per page (positive integer, max 500). Defaults to 100.
+
+    Returns:
+        Dict[str, Any]: A dictionary with analysis details and pagination info.
+    """
     response = sonar_client.list_project_analyses(
         project_key=project_key,
         category=category,
-        branch=branch,
         page=page,
         page_size=page_size,
     )
@@ -111,13 +228,113 @@ def list_project_analyses(
     return response
 
 
-@mcp.tool(description="Search for issues in SonarQube")
+@mcp.tool(
+    description="""
+Retrieve security hotspots in a SonarQube project.
+Parameters:
+- project_key (Required[str], project key, e.g., 'my_project')
+- file_paths (Optional[str], comma-separated file paths, e.g., 'src/main.java,src/utils.js')
+- only_mine (Optional[bool], True to show only current user's hotspots, default=None)
+- page (Optional[int], positive integer for page number, default=1)
+- page_size (Optional[int], positive integer, max 500, default=100)
+- resolution (Optional[str], resolution filter, e.g., 'FIXED', 'SAFE'). Possible values: FIXED, SAFE, ACKNOWLEDGED
+- status (Optional[str], status filter, e.g., 'TO_REVIEW', 'REVIEWED'). Possible values: TO_REVIEW, REVIEWED
+Returns: Dictionary with hotspot list and pagination info.
+Use to identify and filter security hotspots in a project.
+"""
+)
+def get_project_hotspots(
+    project_key: str,
+    file_paths: Optional[str] = None,
+    only_mine: Optional[bool] = None,
+    page: int = 1,
+    page_size: int = 100,
+    resolution: Optional[str] = None,
+    status: Optional[str] = None,
+):
+    """Retrieve security hotspots in a SonarQube project.
+
+    Retrieves a paginated list of security hotspots, filtered by project, file paths, ownership, resolution, or status.
+
+    Args:
+        project_key (str): The key of the project (e.g., 'my_project'). Must be non-empty.
+        file_paths (Optional[str], optional): Comma-separated list of file paths to filter hotspots (e.g., 'src/main.java,src/utils.js'). Defaults to None.
+        only_mine (Optional[bool], optional): If True, return only hotspots assigned to the authenticated user. Defaults to None.
+        page (int, optional): Page number for pagination (positive integer, default=1).
+        page_size (int, optional): Number of hotspots per page (positive integer, max 500, default=100).
+        resolution (Optional[str], optional): Filter by resolution (e.g., 'FIXED', 'SAFE'). Possible values: FIXED, SAFE, ACKNOWLEDGED.
+        status (Optional[str], optional): Filter by status (e.g., 'TO_REVIEW', 'REVIEWED'). Possible values: TO_REVIEW, REVIEWED.
+
+    Returns:
+        Dict[str, Any]: A dictionary with hotspot details and pagination info.
+    """
+    response = sonar_client.get_project_hotspots(
+        project_key=project_key,
+        file_paths=file_paths,
+        only_mine=only_mine,
+        page=page,
+        page_size=page_size,
+        resolution=resolution,
+        status=status,
+    )
+
+    return response
+
+
+@mcp.tool(
+    description="""
+Retrieve details of a specific SonarQube security hotspot.
+Parameters:
+- hotspot_key (Required[str], hotspot key)
+Returns: Dictionary with hotspot details.
+Use to inspect a specific hotspot's properties.
+"""
+)
+def get_hotspot_detail(hotspot_key: str):
+    """Retrieve detailed information about a specific security hotspot.
+
+    Provides details such as the hotspot's location, rule, and status.
+
+    Args:
+        hotspot_key (str): The key of the hotspot. Must be non-empty.
+
+    Returns:
+        Dict[str, Any]: A dictionary with hotspot details.
+    """
+    response = sonar_client.get_hotspot_detail(hotspot_key=hotspot_key)
+
+    return response
+
+
+@mcp.tool(
+    description="""
+Search for issues in SonarQube projects with detailed filters.
+Parameters:
+- additional_fields (Optional[str], comma-separated fields, e.g., 'comments,rules'). Possible values: _all, comments, languages, rules, ruleDescriptionContextKey, transitions, actions, users.
+- assigned (Optional[bool], True for assigned, False for unassigned)
+- assignees (Optional[str], comma-separated logins, e.g., 'user1,__me__').  The value '__me__' can be used as a placeholder for current user who performs the request
+- authors (Optional[str], comma-separated SCM accounts, e.g., 'author1@example.com,linux@fondation.org')
+- components (Optional[str], optional): Comma-separated list of component keys. Retrieve issues associated to a specific list of components (and all its descendants). A component can be a portfolio, project (use project_key), module, directory (use project_key:directory) or file (use_project_key:file_path).
+- issue_statuses (Optional[str], comma-separated statuses, e.g., 'OPEN,FIXED'). Possible values: OPEN, CONFIRMED, FALSE_POSITIVE, ACCEPTED, FIXED.
+- issues (Optional[str], comma-separated issue keys, e.g., '5bccd6e8-f525-43a2-8d76-fcb13dde79ef')
+- page (Optional[int], positive integer, default=1)
+- page_size (Optional[int], positive integer, max 500, default=100)
+- resolutions (Optional[str], comma-separated resolutions, e.g., 'FIXED,FALSE-POSITIVE'). Possible values: FALSE-POSITIVE, WONTFIX, FIXED, REMOVED.
+- resolved (Optional[bool], True for resolved, False for unresolved)
+- scopes (Optional[str], comma-separated scopes, e.g., 'MAIN,TEST'). Possible values: MAIN, TEST.
+- severities (Optional[str], comma-separated severities, e.g., 'BLOCKER,CRITICAL'). Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
+- tags (Optional[str], comma-separated tags, e.g., 'security,bug')
+- types (Optional[str], comma-separated types, e.g., 'BUG,VULNERABILITY'). Possible values: CODE_SMELL, BUG, VULNERABILITY.
+Returns: Dictionary with issue list and pagination info.
+Use to find specific issues based on multiple criteria.
+"""
+)
 def get_issues(
-    project_keys: Optional[str] = None,
     additional_fields: Optional[str] = None,
     assigned: Optional[bool] = None,
     assignees: Optional[str] = None,
     authors: Optional[str] = None,
+    components: Optional[str] = None,
     issue_statuses: Optional[str] = None,
     issues: Optional[str] = None,
     page: int = 1,
@@ -130,32 +347,36 @@ def get_issues(
     types: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    Searches for issues in SonarQube with optional filters.
-    Args:
-        project_keys: List of project keys to filter issues.
-        additional_fields: Additional fields to include in response.
-        assigned: Filter issues by assignment status.
-        assignees: List of assignees to filter issues.
-        authors: List of authors to filter issues.
-        issue_statuses: List of issue statuses to filter.
-        issues: List of issue keys to filter.
-        page: Page number for pagination (default: 1).
-        page_size: Number of issues per page (default: 100, max: 500).
-        resolutions: List of resolutions to filter issues.
-        resolved: Filter issues by resolved status.
-        scopes: List of scopes to filter issues.
-        severities: List of severities to filter issues.
-        tags: List of tags to filter issues.
-        types: List of issue types to filter.
+    Search for issues in SonarQube projects with customizable filters.
+
+    Retrieves a paginated list of issues, filtered by project, status, severity, and other criteria.
+
+    Args:        
+        additional_fields (Optional[str], optional): Comma-separated fields to include (e.g., 'comments,rules'). Defaults to None. Possible values: _all, comments, languages, rules, ruleDescriptionContextKey, transitions, actions, users.
+        assigned (Optional[bool], optional): True for assigned issues, False for unassigned. Defaults to None.
+        assignees (Optional[str], optional): Comma-separated assignee logins (e.g., 'user1,__me__'). Defaults to None.  The value '__me__' can be used as a placeholder for user who performs the request.
+        authors (Optional[str], optional): Comma-separated SCM author accounts (e.g., 'author1@example.com'). Defaults to None.
+        components (Optional[str], optional): components (Optional[str], optional): Comma-separated list of component keys. Retrieve issues associated to a specific list of components (and all its descendants). A component can be a portfolio, project (use project_key), module, directory (use project_key:directory) or file (use_project_key:file_path).
+        issue_statuses (Optional[str], optional): Comma-separated statuses (e.g., 'OPEN,FIXED'). Defaults to None. Possible values: OPEN, CONFIRMED, FALSE_POSITIVE, ACCEPTED, FIXED.
+        issues (Optional[str], optional): Comma-separated issue keys (e.g., '5bccd6e8-f525-43a2-8d76-fcb13dde79ef'). Defaults to None.
+        page (int, optional): Page number for pagination (positive integer). Defaults to 1.
+        page_size (int, optional): Number of issues per page (positive integer, max 500). Defaults to 100.
+        resolutions (Optional[str], optional): Comma-separated resolutions (e.g., 'FIXED,FALSE-POSITIVE'). Defaults to None. Possible values: FALSE-POSITIVE, WONTFIX, FIXED, REMOVED.
+        resolved (Optional[bool], optional): True for resolved issues, False for unresolved. Defaults to None.
+        scopes (Optional[str], optional): Comma-separated scopes (e.g., 'MAIN,TEST'). Defaults to None. Possible values: MAIN, TEST.
+        severities (Optional[str], optional): Comma-separated severities (e.g., 'BLOCKER,CRITICAL'). Defaults to None. Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
+        tags (Optional[str], optional): Comma-separated tags (e.g., 'security,bug'). Defaults to None.
+        types (Optional[str], optional): Comma-separated types (e.g., 'BUG,VULNERABILITY'). Defaults to None. Possible values: CODE_SMELL, BUG, VULNERABILITY.
+
     Returns:
-        List of strings with issue details in the format "key: message (severity, status)".
+        Dict[str, Any]: A dictionary with issue details and pagination info.
     """
     response = sonar_client.get_issues(
-        project_keys=project_keys,
         additional_fields=additional_fields,
         assigned=assigned,
         assignees=assignees,
         authors=authors,
+        components=components,
         issue_statuses=issue_statuses,
         issues=issues,
         page=page,
@@ -171,18 +392,31 @@ def get_issues(
     return response
 
 
-@mcp.tool(description="Retrieve issues authors for a project")
+@mcp.tool(
+    description="""
+Retrieve SCM authors of issues for a SonarQube project.
+Parameters:
+- project_key (Optional[str], project key, e.g., 'my_project')
+- page (Optional[int], positive integer, default=1)
+- page_size (Optional[int], positive integer, max 100, default=10)
+Returns: Dictionary with list of SCM author accounts (e.g., emails).
+Use to identify contributors to issues in a project.
+"""
+)
 def get_issues_authors(
-    project_key: Optional[str] = None, page: int = 1, page_size: int = 100
+    project_key: Optional[str] = None, page: int = 1, page_size: int = 10
 ) -> Dict[str, Any]:
-    """
-    Retrieves issues authors for a project.
+    """Retrieve SCM authors associated with issues in a SonarQube project.
+
+    Lists unique SCM accounts (e.g., email addresses) of authors for issues.
+
     Args:
-        project_key: Optional project key to filter authors.
-        page: Page number for pagination (default: 1).
-        page_size: Number of authors per page (default: 100, max: 500).
+        project_key (Optional[str], optional): Project key to filter authors (e.g., 'my_project'). Defaults to None.
+        page (int, optional): Page number for pagination (positive integer). Defaults to 1.
+        page_size (int, optional): Number of authors per page (positive integer, max 100). Defaults to 100.
+
     Returns:
-        List of issues author names.
+        Dict[str, Any]: A dictionary with a list of SCM author accounts.
     """
     response = sonar_client.get_issues_authors(
         project_key=project_key, page=page, page_size=page_size
@@ -191,80 +425,151 @@ def get_issues_authors(
     return response
 
 
-@mcp.tool(description="Retrieve available metric types")
+@mcp.tool(
+    description="""
+Retrieve all available metric types in SonarQube.
+Parameters: None
+Returns: Dictionary with list of metric types (e.g., 'INT', 'FLOAT').
+Use to understand metric data formats before querying metrics.
+"""
+)
 def get_metrics_type() -> Dict[str, Any]:
-    """
-    Retrieves available metric types in SonarQube.
+    """Retrieve all available metric types in SonarQube.
+
+    Lists the types of metrics (e.g., 'INT', 'FLOAT') supported by SonarQube.
+
+    Args:
+        None
+
     Returns:
-        List of metric type names.
+        Dict[str, Any]: A dictionary with a list of metric type names.
     """
     response = sonar_client.get_metrics_type()
     return response
 
 
-@mcp.tool(description="Retrieve available metrics")
+@mcp.tool(
+    description="""
+Retrieve all available metrics in SonarQube with pagination.
+Parameters:
+- page (Optional[int], positive integer, default=1)
+- page_size (Optional[int], positive integer, max 500, default=100)
+Returns: Dictionary with metric list and pagination info.
+Use to explore metrics like 'ncloc', 'complexity' for analysis.
+"""
+)
 def get_metrics(page: int = 1, page_size: int = 100) -> Dict[str, Any]:
-    """
-    Retrieves available metrics in SonarQube.
+    """Retrieve all available metrics in SonarQube with pagination.
+
+    Lists metrics (e.g., 'complexity') with details like name, type, and domain.
+
     Args:
-        page: Page number for pagination (default: 1).
-        page_size: Number of metrics per page (default: 100, max: 500).
+        page (int, optional): Page number for pagination (positive integer). Defaults to 1.
+        page_size (int, optional): Number of metrics per page (positive integer, max 500). Defaults to 100.
+
     Returns:
-        List of strings with metric name and key in the format "name (key)".
+        Dict[str, Any]: A dictionary with metric details and pagination info.
     """
     response = sonar_client.get_metrics(page=page, page_size=page_size)
     return response
 
 
-@mcp.tool(description="List all quality gates")
+@mcp.tool(
+    description="""
+List all quality gates defined in SonarQube.
+Parameters: None
+Returns: Dictionary with list of quality gate names and IDs.
+Use to view available quality gates for project assignments.
+"""
+)
 def get_quality_gates() -> Dict[str, Any]:
-    """
-    Retrieves the list of quality gates in SonarQube.
+    """List all quality gates defined in SonarQube.
+
+    Retrieves a list of quality gates with their names and IDs.
+
+    Args:
+        None
+
     Returns:
-        List of quality gate names.
+        Dict[str, Any]: A dictionary with quality gate details.
     """
     response = sonar_client.get_quality_gates()
     return response
 
 
-@mcp.tool(description="Get details of a specific quality gate")
+@mcp.tool(
+    description="""
+Retrieve details of a specific SonarQube quality gate.
+Parameters:
+- name (Required[str], quality gate name, e.g., 'Sonar way')
+Returns: Dictionary with quality gate conditions and thresholds.
+Use to inspect quality gate criteria for compliance checks.
+"""
+)
 def get_quality_gates_details(name: str) -> Dict[str, Any]:
-    """
-    Retrieves details of a specific quality gate.
+    """Retrieve detailed information about a specific quality gate in SonarQube.
+
+    Includes conditions and thresholds defined in the quality gate.
+
     Args:
-        name: Name of the quality gate.
+        name (str): Name of the quality gate (e.g., 'Sonar way').
+
     Returns:
-        Dictionary with quality gate details.
+        Dict[str, Any]: A dictionary with quality gate details, including conditions.
     """
     response = sonar_client.get_quality_gates_details(name=name)
     return response
 
 
-@mcp.tool(description="Get quality gate associated with a project")
+@mcp.tool(
+    description="""
+Get the quality gate associated with a SonarQube project.
+Parameters:
+- project_key (Required[str], project key, e.g., 'my_project')
+Returns: Dictionary with assigned quality gate details.
+Use to check which quality gate is applied to a project.
+"""
+)
 def get_quality_gates_by_project(project_key: str) -> Dict[str, Any]:
-    """
-    Retrieves the quality gate associated with a project.
+    """Retrieve the quality gate associated with a specific SonarQube project.
+
+    Returns the quality gate assigned to the project, if any.
+
     Args:
-        project_key: Key of the project.
+        project_key (str): The key of the project (e.g., 'my_project').
+
     Returns:
-        Dictionary with quality gate details for the project.
+        Dict[str, Any]: A dictionary with the associated quality gate details.
     """
     response = sonar_client.get_quality_gates_by_project(project_key=project_key)
     return response
 
 
-@mcp.tool(description="Get quality gate status for a project or analysis")
+@mcp.tool(
+    description="""
+Retrieve quality gate status for a SonarQube project or analysis.
+Parameters:
+- analysis_id (Optional[str], analysis ID)
+- project_key (Optional[str], project key, e.g., 'my_project')
+Exactly one of analysis_id or project_key must be provided.
+Returns: Dictionary with quality gate status (e.g., 'OK', 'ERROR') and conditions.
+Use to evaluate quality gate results for a project or analysis.
+"""
+)
 def get_quality_gates_project_status(
-    analysis_id: str = "",
-    project_key: str = "",
+    analysis_id: Optional[str] = None,
+    project_key: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """
-    Retrieves quality gate status for a project or analysis.
+    """Retrieve the quality gate status for a project or specific analysis.
+
+    Exactly one of `analysis_id` or `project_key` must be provided.
+
     Args:
-        analysis_id: ID of the analysis.
-        project_key: Key of the project.
+        analysis_id (Optional[str], optional): ID of the analysis to check. Defaults to None.
+        project_key (Optional[str], optional): Key of the project to check (e.g., 'my_project'). Defaults to None.
+
     Returns:
-        Dictionary with quality gate status details.
+        Dict[str, Any]: A dictionary with quality gate status details.
     """
     response = sonar_client.get_quality_gates_project_status(
         analysis_id=analysis_id,
@@ -274,22 +579,145 @@ def get_quality_gates_project_status(
     return response
 
 
-@mcp.tool(description="Retrieve source code for a file")
+@mcp.tool(
+    description="""
+Retrieve SonarQube quality profiles.
+Parameters:
+- defaults (Optional[bool], True to show only default profiles, default=False)
+- language (Optional[str], programming language, e.g., 'java', 'py')
+- project_key (Optional[str], project key, e.g., 'my_project')
+Returns: Dictionary with quality profile details.
+Use to find quality profiles by language or project association.
+"""
+)
+def get_quality_profiles(
+    defaults: bool = False,
+    language: Optional[str] = None,
+    project_key: Optional[str] = None,
+):
+    """Search for quality profiles in SonarQube.
+
+    Retrieves quality profiles, optionally filtered by default profiles, language, or associated project.
+
+    Args:
+        defaults (bool, optional): If True, return only default profiles. Defaults to False.
+        language (Optional[str], optional): Filter by programming language (e.g., 'java', 'py'). Defaults to None.
+        project_key (Optional[str], optional): Filter by project key (e.g., 'my_project'). Defaults to None.
+
+    Returns:
+        Dict[str, Any]: A dictionary with quality profile details.
+    """
+    response = sonar_client.get_quality_profiles(
+        defaults=defaults,
+        language=language,
+        project_key=project_key,
+    )
+
+    return response
+
+
+@mcp.tool(
+    description="""
+Retrieve SonarQube rules with optional filters.
+Parameters:
+- page (Optional[int], positive integer for page number, default=1)
+- page_size (Optional[int], positive integer, max 500, default=100)
+- severities (Optional[str], comma-separated severities, e.g., 'BLOCKER,CRITICAL'). Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
+- statuses (Optional[str], comma-separated statuses, e.g., 'BETA,READY'). Possible values: BETA, DEPRECATED, READY, REMOVED.
+- types (Optional[str], comma-separated types, e.g., 'BUG,CODE_SMELL'). Possible values: CODE_SMELL, BUG, VULNERABILITY, SECURITY_HOTSPOT.
+Returns: Dictionary with rule list and pagination info.
+Use to find rules by severity, status, or type.
+"""
+)
+def get_rules(
+    page: int = 1,
+    page_size: int = 100,
+    severities: Optional[str] = None,
+    statuses: Optional[str] = None,
+    types: Optional[str] = None,
+):
+    """Retrieve for rules in SonarQube.
+
+    Retrieves a paginated list of rules, optionally filtered by severity, status, or type.
+
+    Args:
+        page (int, optional): Page number for pagination (positive integer, default=1).
+        page_size (int, optional): Number of rules per page (positive integer, max 500, default=100).
+        severities (Optional[str], optional): Comma-separated list of severities (e.g., 'BLOCKER,CRITICAL'). Defaults to None. Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
+        statuses (Optional[str], optional): Comma-separated list of statuses (e.g., 'BETA,READY'). Defaults to None. Possible values: BETA, DEPRECATED, READY, REMOVED.
+        types (Optional[str], optional): Comma-separated list of rule types (e.g., 'BUG,CODE_SMELL'). Defaults to None. Possible values: CODE_SMELL, BUG, VULNERABILITY, SECURITY_HOTSPOT.
+
+    Returns:
+        Dict[str, Any]: A dictionary with rule details and pagination info.
+    """
+    response = sonar_client.get_rules(
+        page=page,
+        page_size=page_size,
+        severities=severities,
+        statuses=statuses,
+        types=types,
+    )
+
+    return response
+
+
+@mcp.tool(
+    description="""
+Retrieve details of a specific SonarQube rule.
+Parameters:
+- rule_key (Required[str], rule key, e.g., 'squid:S1234')
+- actives (Optional[bool], True to include active profile status, default=False)
+Returns: Dictionary with rule details (e.g., name, severity, active profiles).
+Use to inspect a specific rule's properties.
+"""
+)
+def get_rule_details(rule_key: str, actives: Optional[bool] = False):
+    """Retrieve detailed information about a specific SonarQube rule.
+
+    Provides rule details, including description and active status in profiles if requested.
+
+    Args:
+        rule_key (str): The key of the rule. Must be non-empty.
+        actives (Optional[bool], optional): If True, include active status in quality profiles. Defaults to False.
+
+    Returns:
+        Dict[str, Any]: A dictionary with rule details."""
+
+    response = sonar_client.get_rule_details(rule_key=rule_key, actives=actives)
+
+    return response
+
+
+@mcp.tool(
+    description="""
+Retrieve source code for a file in a SonarQube project.
+Parameters:
+- project_key (Required[str], project key, e.g., 'my_project')
+- file_path (Required[str], file path, e.g., 'src/main.java')
+- start (Optional[int], positive integer for start line)
+- end (Optional[int], positive integer, >= start, for end line)
+Returns: Dictionary with source code lines and line numbers.
+Use to view specific lines of a file's source code.
+"""
+)
 def get_source(
     project_key: str,
     file_path: str,
     start: Optional[int] = None,
     end: Optional[int] = None,
 ) -> Dict[str, Any]:
-    """
-    Retrieves source code for a file in SonarQube.
+    """Retrieve source code for a file in a SonarQube project.
+
+    Returns the source code lines with line numbers, optionally limited to a range.
+
     Args:
-        project_key: Key of the project (e.g., "my-project").
-        file_path: Path to the file within the project (e.g., "src/main.py").
-        start: Starting line number (optional, must be positive).
-        end: Ending line number (optional, must be positive and >= start).
+        project_key (str): Key of the project (e.g., 'my_project').
+        file_path (str): Path to the file within the project (e.g., 'src/main.java').
+        start (Optional[int], optional): Starting line number (positive integer). Defaults to None.
+        end (Optional[int], optional): Ending line number (positive integer, >= start). Defaults to None.
+
     Returns:
-        List of source code lines.
+        Dict[str, Any]: A dictionary with source code lines.
     """
     file_key = f"{project_key}:{file_path}"
     response = sonar_client.get_source(file_key=file_key, start=start, end=end)
@@ -297,7 +725,19 @@ def get_source(
     return response
 
 
-@mcp.tool(description="Retrieve SCM information for a file")
+@mcp.tool(
+    description="""
+Retrieve SCM information for a file in a SonarQube project.
+Parameters:
+- project_key (Required[str], project key, e.g., 'my_project')
+- file_path (Required[str], file path, e.g., 'src/main.java')
+- start (Optional[int], positive integer for start line)
+- end (Optional[int], positive integer, >= start, for end line)
+- commits_by_line (Optional[bool], True to list commits per line, False to group by commit, default=False)
+Returns: Dictionary with SCM details (author, date, revision) per line.
+Use to track changes and contributors for a file.
+"""
+)
 def get_scm_info(
     project_key: str,
     file_path: str,
@@ -305,16 +745,19 @@ def get_scm_info(
     end: Optional[int] = None,
     commits_by_line: bool = False,
 ) -> Dict[str, Any]:
-    """
-    Retrieves SCM information for a file in SonarQube.
+    """Retrieve SCM information for a file in a SonarQube project.
+
+    Returns SCM details (author, date, revision) per line, optionally for a range.
+
     Args:
-        project_key: Key of the project (e.g., "my-project").
-        file_path: Path to the file within the project (e.g., "src/main.py").
-        start: Starting line number (optional).
-        end: Ending line number (optional).
-        commits_by_line: Whether to include commits by line (default: False).
+        project_key (str): Key of the project (e.g., 'my-project').
+        file_path (str): Path to the file within the project (e.g., "src/main.java").
+        start (Optional[int]): Starting line number (positive integer). Defaults to None.
+        end (Optional[int]): Ending line number (positive integer, >= start). Defaults to None.
+        commits_by_line (Optional[bool], optional): If True, include commits for each line; if False, group by commit. Defaults to False.
+
     Returns:
-        Dictionary with SCM details per line.
+        Dict[str, Any]: A dictionary with SCM details per line.
     """
     file_key = f"{project_key}:{file_path}"
     response = sonar_client.get_scm_info(
@@ -327,17 +770,52 @@ def get_scm_info(
     return response
 
 
-@mcp.tool(description="Retrieve raw source code for a file")
+@mcp.tool(
+    description="""
+Retrieve raw source code as plain text for a file in a SonarQube project.
+Parameters:
+- project_key (Required[str], project key, e.g., 'my_project')
+- file_path (Required[str], file path, e.g., 'src/main.java')
+Returns: String with raw source code.
+Use to get the full file content as plain text.
+"""
+)
 def get_source_raw(project_key: str, file_path: str) -> str:
-    """
-    Retrieves raw source code for a file in SonarQube.
+    """Retrieve raw source code as plain text for a file in a SonarQube project.
+
     Args:
-        project_key: Key of the project (e.g., "my-project").
-        file_path: Path to the file within the project (e.g., "src/main.py").
+        project_key (str): Key of the project (e.g., 'my_project').
+        file_path (str): Path to the file within the project (e.g., 'src/main.java').
     Returns:
-        List of source code lines.
+        str: Raw source code as a plain text.
     """
     file_key = f"{project_key}:{file_path}"
     response = sonar_client.get_source_raw(file_key=file_key)
+
+    return response
+
+
+@mcp.tool(
+    description="""
+Retrieve code snippets for a specific SonarQube issue.
+Parameters:
+- issue_key (Required[str], issue key)
+Returns: Dictionary with code snippets around the issue location.
+Use to view source code context for an issue.
+"""
+)
+def get_source_issue_snippets(issue_key: str):
+    """Retrieve code snippets associated with a specific SonarQube issue.
+
+    Provides source code snippets around the issue's location for context.
+
+    Args:
+        issue_key (str): The key of the issue. Must be non-empty.
+
+    Returns:
+        Dict[str, Any]: A dictionary with code snippets for the issue.
+    """
+
+    response = sonar_client.get_source_issue_snippets(issue_key=issue_key)
 
     return response

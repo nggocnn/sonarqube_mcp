@@ -21,7 +21,7 @@ class SonarQubeClient:
             token (str): The authentication token for accessing the SonarQube API.
             organization (Optional[str], optional): The organization key for organization-specific requests. Defaults to None.
             timeout (float, optional): The timeout for API requests in seconds. Defaults to 10.0.
-        
+
         Returns:
             None
         """
@@ -372,7 +372,6 @@ class SonarQubeClient:
         Returns:
             Dict[str, Any]: Dictionary containing project list and pagination details, or an error response with 'error' and 'details' keys.
         """
-
         if page < 1:
             logger.error("page must be positive integers")
             page = 1
@@ -470,7 +469,7 @@ class SonarQubeClient:
 
         Args:
             project_key (str): The key of the project to retrieve analyses for.
-            category (Optional[str], optional): Event category to filter analyses (e.g., 'VERSION', 'QUALITY_GATE', 'OTHER'). Defaults to None.
+            category (Optional[str], optional): Event category to filter analyses (e.g., 'VERSION,QUALITY_GATE,OTHER'). Defaults to None. Possible values: VERSION, OTHER, QUALITY_PROFILE, QUALITY_GATE, DEFINITION_CHANGE, ISSUE_DETECTION, SQ_UPGRADE
             branch (Optional[str], optional): Branch key to filter analyses (not available in Community Edition). Defaults to None.
             page (int, optional): Page number for pagination (must be positive). Defaults to 1.
             page_size (int, optional): Number of analyses per page (must be positive, max 500). Defaults to 100.
@@ -494,7 +493,7 @@ class SonarQubeClient:
 
         params = {
             "project": project_key,
-            "category": category,
+            "category": str(category).upper() if category else None,
             "branch": branch,
             "p": page,
             "ps": page_size,
@@ -509,14 +508,106 @@ class SonarQubeClient:
             )
         return response
 
+    def get_project_hotspots(
+        self,
+        project_key: str,
+        file_paths: Optional[str] = None,
+        only_mine: Optional[bool] = None,
+        page: int = 1,
+        page_size: int = 100,
+        resolution: Optional[str] = None,
+        status: Optional[str] = None,
+    ):
+        """
+        Retrieve security hotspots in a SonarQube project.
+
+        Retrieves a paginated list of security hotspots for a project, with optional filters by file paths, ownership, resolution, or status.
+
+        Args:
+            project_key (str): The key of the project (e.g., 'my_project'). Must be non-empty.
+            file_paths (Optional[str], optional): Comma-separated list of file paths to filter hotspots (e.g., 'src/main.java,src/utils.js'). Defaults to None.
+            only_mine (Optional[bool], optional): If True, return only hotspots assigned to the authenticated user. Defaults to None.
+            page (int, optional): Page number for pagination (positive integer, default=1).
+            page_size (int, optional): Number of hotspots per page (positive integer, max 500, default=100).
+            resolution (Optional[str], optional): Filter by resolution (e.g., 'FIXED', 'SAFE'). Defaults to None. Possible values: FIXED, SAFE, ACKNOWLEDGED.
+            status (Optional[str], optional): Filter by status (e.g., 'TO_REVIEW', 'REVIEWED'). Defaults to None. Possible values: TO_REVIEW, REVIEWED
+
+        Returns:
+            Dict[str, Any]: A dictionary with hotspot details and pagination info.
+        """
+        if not project_key or not project_key.strip():
+            logger.error("project_key must be a non-empty string")
+            return {
+                "error": "Invalid parameters",
+                "details": "project_key must be a non-empty string",
+            }
+
+        if page < 1:
+            logger.error("page must be positive integers")
+            page = 1
+
+        if page_size < 1:
+            logger.error("page_size must be positive integers")
+            page_size = 100
+
+        endpoint = "/api/hotspots/search"
+
+        params = {
+            "project": project_key,
+            "files": file_paths,
+            "onlyMine": str(only_mine).lower() if only_mine is not None else None,
+            "p": page,
+            "ps": page_size,
+            "resolution": resolution,
+            "status": status,
+        }
+
+        params = {k: v for k, v in params.items() if v is not None}
+
+        response = self.__make_request(endpoint=endpoint, params=params)
+        if isinstance(response, dict) and "error" in response:
+            logger.error(
+                f"List project hotspots failed: {response.get('details', 'Unknown error')}"
+            )
+        return response
+
+    def get_hotspot_detail(self, hotspot_key: str):
+        """Retrieve detailed information about a specific security hotspot.
+
+        Provides details such as the hotspot's location, rule, and status.
+
+        Args:
+            hotspot_key (str): The key of the hotspot (e.g., 'HOTSPOT123'). Must be non-empty.
+
+        Returns:
+            Dict[str, Any]: A dictionary with hotspot details.
+        """
+        if not hotspot_key or not hotspot_key.strip():
+            logger.error("hotspot_key must be a non-empty string")
+            return {
+                "error": "Invalid parameters",
+                "details": "hotspot_key must be a non-empty string",
+            }
+
+        endpoint = "/api/hotspots/show"
+
+        response = self.__make_request(
+            endpoint=endpoint, params={"hotspot": hotspot_key}
+        )
+        if isinstance(response, dict) and "error" in response:
+            logger.error(
+                f"Get hotspot details failed: {response.get('details', 'Unknown error')}"
+            )
+        return response
+
     def get_issues(
         self,
-        project_keys: str,
         additional_fields: Optional[str] = None,
         assigned: Optional[bool] = None,
         assignees: Optional[str] = None,
         authors: Optional[str] = None,
         branch: Optional[str] = None,
+        components: Optional[str] = None,
         issue_statuses: Optional[str] = None,
         issues: Optional[str] = None,
         page: int = 1,
@@ -531,22 +622,22 @@ class SonarQubeClient:
         """Search for issues in SonarQube projects with specified filters.
 
         Args:
-            project_keys (str): Comma-separated list of project keys to search for issues.
-            additional_fields (Optional[str], optional): Comma-separated list of optional fields to include in the response (e.g., 'comments', 'rules'). Defaults to None.
+            additional_fields (Optional[str], optional): Comma-separated list of optional fields to include in the response (e.g., 'comments,rules'). Defaults to None. Possible values: _all, comments, languages, rules, ruleDescriptionContextKey, transitions, actions, users.
             assigned (Optional[bool], optional): Filter for assigned (True) or unassigned (False) issues. Defaults to None.
-            assignees (Optional[str], optional): Comma-separated list of assignee logins, or '__me__' for the current user. Defaults to None.
-            authors (Optional[str], optional): Comma-separated list of SCM author accounts. For example: author=torvalds@linux-foundation.org&author=linux@fondation.org . Defaults to None.
+            assignees (Optional[str], optional): Comma-separated list of assignee logins, '__me__' for the current user. Defaults to None.
+            authors (Optional[str], optional): Comma-separated list of SCM author accounts. For example: torvalds@linux-foundation.org,linux@fondation.org . Defaults to None.
             branch (Optional[str], optional): Branch key to filter issues (not available in Community Edition). Defaults to None.
-            issue_statuses (Optional[str], optional): Comma-separated list of issue statuses (e.g., 'OPEN', 'CONFIRMED', 'FIXED'). Defaults to None.
+            components (Optional[str], optional): Comma-separated list of component keys. Retrieve issues associated to a specific list of components (and all its descendants). A component can be a portfolio, project, module, directory or file.
+            issue_statuses (Optional[str], optional): Comma-separated list of issue statuses (e.g., 'OPEN,CONFIRMED,FIXED'). Defaults to None. Possible values: OPEN, CONFIRMED, FALSE_POSITIVE, ACCEPTED, FIXED.
             issues (Optional[str], optional): Comma-separated list of issue keys to retrieve specific issues. Defaults to None.
             page (int, optional): Page number for pagination (must be positive). Defaults to 1.
             page_size (int, optional): Number of issues per page (must be positive, max 500). Defaults to 100.
-            resolutions (Optional[str], optional): Comma-separated list of resolutions (e.g., 'FIXED', 'FALSE-POSITIVE'). Defaults to None.
+            resolutions (Optional[str], optional): Comma-separated list of resolutions (e.g., 'FIXED,FALSE-POSITIVE'). Defaults to None. Possible values: FALSE-POSITIVE, WONTFIX, FIXED, REMOVED.
             resolved (Optional[bool], optional): Filter for resolved (True) or unresolved (False) issues. Defaults to None.
-            scopes (Optional[str], optional): Comma-separated list of scopes (e.g., 'MAIN', 'TEST'). Defaults to None.
-            severities (Optional[str], optional): Comma-separated list of severities (e.g., 'BLOCKER', 'CRITICAL'). Defaults to None.
-            tags (Optional[str], optional): Comma-separated list of issue tags (e.g., 'security', 'convention'). Defaults to None.
-            types (Optional[str], optional): Comma-separated list of issue types (e.g., 'BUG', 'VULNERABILITY'). Defaults to None.
+            scopes (Optional[str], optional): Comma-separated list of scopes (e.g., 'MAIN,TEST'). Defaults to None. Possible values: MAIN, TEST.
+            severities (Optional[str], optional): Comma-separated list of severities (e.g., 'BLOCKER,CRITICAL'). Defaults to None. Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
+            tags (Optional[str], optional): Comma-separated list of issue tags (e.g., 'security,convention'). Defaults to None.
+            types (Optional[str], optional): Comma-separated list of issue types (e.g., 'BUG,VULNERABILITY'). Defaults to None. Possible values: CODE_SMELL, BUG, VULNERABILITY.
 
         Returns:
             Dict[str, Any]: Dictionary containing a list of issues and pagination details, or an error response.
@@ -566,26 +657,30 @@ class SonarQubeClient:
         endpoint = "/api/issues/search"
 
         params = [
-            ("additionalFields", additional_fields),
-            ("assigned", str(assigned) if assigned else None),
+            (
+                "additionalFields",
+                additional_fields.lower() if additional_fields else None,
+            ),
+            ("assigned", str(assigned).lower() if assigned is not None else None),
             ("assignees", assignees),
             ("branch", branch),
-            ("issueStatuses", issue_statuses),
+            ("components", components),
+            ("issueStatuses", issue_statuses.upper() if issue_statuses else None),
             ("issues", issues),
-            ("componentKeys", project_keys),
             ("organization", self.organization),
             ("p", page),
             ("ps", page_size),
-            ("resolutions", resolutions),
-            ("resolved", str(resolved) if resolved else None),
-            ("scopes", scopes),
-            ("severities", severities),
+            ("resolutions", resolutions.upper() if resolutions else None),
+            ("resolved", str(resolved).lower() if resolved is not None else None),
+            ("scopes", scopes.upper() if scopes else None),
+            ("severities", severities.upper() if severities else None),
             ("tags", tags),
-            ("types", types),
+            ("types", types.upper() if types else None),
         ]
 
         if authors:
-            params += [("author", a) for a in authors]
+            authors = authors.split(",")
+            params.extend(("author", a) for a in authors)
 
         params = [(k, v) for k, v in params if v is not None]
 
@@ -600,7 +695,7 @@ class SonarQubeClient:
         self,
         project_key: Optional[str] = None,
         page: Optional[int] = 1,
-        page_size: Optional[int] = 100,
+        page_size: Optional[int] = 10,
     ) -> Dict[str, Any]:
         """Retrieve SCM authors for issues in a SonarQube project, with optional filtering.
 
@@ -608,7 +703,7 @@ class SonarQubeClient:
             project_key (Optional[str], optional): Project key to filter authors. Defaults to None.
             query (Optional[str], optional): Search query to filter authors by SCM account (partial match). Defaults to None.
             page (int, optional): Page number for pagination (must be positive). Defaults to 1.
-            page_size (int, optional): Number of authors per page (must be positive, max 100). Defaults to 100.
+            page_size (int, optional): Number of authors per page (must be positive, max 100). Defaults to 10.
 
         Returns:
             Dict[str, Any]: Dictionary containing a list of SCM authors, or an error response.
@@ -619,11 +714,11 @@ class SonarQubeClient:
 
         if page_size < 1:
             logger.error("page_size must be positive integers")
-            page_size = 100
+            page_size = 10
 
-        if page_size > 500:
-            logger.warning("Page size capped at 500 by SonarQube API")
-            page_size = 500
+        if page_size > 100:
+            logger.warning("Page size capped at 100 by SonarQube API")
+            page_size = 100
 
         endpoint = "/api/issues/authors"
 
@@ -793,6 +888,129 @@ class SonarQubeClient:
             )
         return response
 
+    def get_quality_profiles(
+        self,
+        defaults: bool = False,
+        language: Optional[str] = None,
+        project_key: Optional[str] = None,
+    ):
+        """Retrieve quality profiles in SonarQube.
+
+        Retrieves quality profiles, optionally filtered by default profiles, language, or associated project.
+
+        Args:
+            defaults (bool, optional): If True, return only default profiles. Defaults to False.
+            language (Optional[str], optional): Filter by programming language (e.g., 'java', 'py'). Defaults to None.
+            project_key (Optional[str], optional): Filter by project key (e.g., 'my_project'). Defaults to None.
+
+        Returns:
+            Dict[str, Any]: A dictionary with quality profile details.
+        """
+
+        endpoint = "/api/qualityprofiles/search"
+        params = {
+            "defaults": str(defaults).lower(),
+            "language": language.lower() if language else None,
+            "project": project_key,
+        }
+        params = {k: v for k, v in params.items() if v is not None}
+
+        response = self.__make_request(endpoint=endpoint, params=params)
+        if isinstance(response, dict) and "error" in response:
+            logger.error(
+                f"List quality profiles failed: {response.get('details', 'Unknown error')}"
+            )
+
+        return response
+
+    def get_rules(
+        self,
+        page: int = 1,
+        page_size: int = 100,
+        severities: Optional[str] = None,
+        statuses: Optional[str] = None,
+        types: Optional[str] = None,
+    ):
+        """Search for rules in SonarQube.
+
+        Retrieves a paginated list of rules, optionally filtered by severity, status, or type.
+
+        Args:
+            page (int, optional): Page number for pagination (positive integer, default=1).
+            page_size (int, optional): Number of rules per page (positive integer, max 500, default=100).
+            severities (Optional[str], optional): Comma-separated list of severities (e.g., 'BLOCKER,CRITICAL'). Defaults to None. Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
+            statuses (Optional[str], optional): Comma-separated list of statuses (e.g., 'BETA,READY'). Defaults to None. Possible values: BETA, DEPRECATED, READY, REMOVED.
+            types (Optional[str], optional): Comma-separated list of rule types (e.g., 'BUG,CODE_SMELL'). Defaults to None. Possible values: CODE_SMELL, BUG, VULNERABILITY, SECURITY_HOTSPOT.
+
+        Returns:
+            Dict[str, Any]: A dictionary with rule details and pagination info.
+        """
+        if page < 1:
+            logger.error("page must be positive integers")
+            page = 1
+
+        if page_size < 1:
+            logger.error("page_size must be positive integers")
+            page_size = 100
+
+        if page_size > 500:
+            logger.warning("Page size capped at 500 by SonarQube API")
+            page_size = 500
+
+        endpoint = "/api/rules/search"
+
+        params = {
+            "p": page,
+            "ps": page_size,
+            "severities": severities.upper() if severities else None,
+            "statuses": statuses.upper() if statuses else None,
+            "types": types.upper() if types else None,
+        }
+
+        params = {k: v for k, v in params.items() if v is not None}
+
+        response = self.__make_request(endpoint=endpoint, params=params)
+        if isinstance(response, dict) and "error" in response:
+            logger.error(
+                f"List rules failed: {response.get('details', 'Unknown error')}"
+            )
+        return response
+
+    def get_rule_details(self, rule_key: str, actives: Optional[bool] = False):
+        """Retrieve detailed information about a specific SonarQube rule.
+
+        Provides rule details, including description and active status in profiles if requested.
+
+        Args:
+            rule_key (str): The key of the rule (e.g., 'squid:S1234'). Must be non-empty.
+            actives (Optional[bool], optional): If True, include active status in quality profiles. Defaults to False.
+
+        Returns:
+            Dict[str, Any]: A dictionary with rule details.
+        """
+        if not rule_key or not rule_key.strip():
+            logger.error("rule_key must be a non-empty string")
+            return {
+                "error": "Invalid parameters",
+                "details": "rule_key must be a non-empty string",
+            }
+
+        endpoint = "/api/rules/show"
+
+        params = {
+            "key": rule_key,
+            "actives": str(actives).lower(),
+        }
+
+        params = {k: v for k, v in params.items() if v is not None}
+
+        response = self.__make_request(endpoint=endpoint, params=params)
+        if isinstance(response, dict) and "error" in response:
+            logger.error(
+                f"Get rule details failed: {response.get('details', 'Unknown error')}"
+            )
+        return response
+
     def get_source(
         self, file_key: str, start: Optional[int] = None, end: Optional[int] = None
     ) -> Dict[str, Any]:
@@ -814,13 +1032,14 @@ class SonarQubeClient:
             }
 
         if start is not None and start < 1:
-            logger.error("Start line must be positive")
+            logger.warning("Start line must be positive")
             start = None
 
         if end is not None and (end < 1 or (start is not None and end < start)):
-            logger.error(
+            logger.warning(
                 "End line must be positive and greater than or equal to start line"
             )
+            start = None
             end = None
 
         endpoint = "/api/sources/show"
@@ -868,6 +1087,7 @@ class SonarQubeClient:
             logger.warning(
                 "End line must be positive and greater than or equal to start line."
             )
+            start = None
             end = None
 
         endpoint = "/api/sources/scm"
@@ -912,5 +1132,34 @@ class SonarQubeClient:
         if isinstance(response, dict) and "error" in response:
             logger.error(
                 f"Get raw source failed: {response.get('details', 'Unknown error')}"
+            )
+        return response
+
+    def get_source_issue_snippets(self, issue_key: str):
+        """Retrieve code snippets associated with a specific SonarQube issue.
+
+        Provides source code snippets around the issue's location for context.
+
+        Args:
+            issue_key (str): The key of the issue. Must be non-empty.
+
+        Returns:
+            Dict[str, Any]: A dictionary with code snippets for the issue.
+        """
+        if not issue_key or not issue_key.strip():
+            logger.error("issue_key must be a non-empty string")
+            return {
+                "error": "Invalid parameters",
+                "details": "issue_key must be a non-empty string",
+            }
+
+        endpoint = "/api/sources/issue_snippets"
+
+        response = self.__make_request(
+            endpoint=endpoint, params={"issueKey": issue_key}
+        )
+        if isinstance(response, dict) and "error" in response:
+            logger.error(
+                f"Get issue snippets failed: {response.get('details', 'Unknown error')}"
             )
         return response
