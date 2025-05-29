@@ -96,20 +96,20 @@ def system_ping() -> bool:
     description="""
 Search for SonarQube projects with optional name or key filtering.
 Parameters:
-- projects (Optional[str], comma-separated project keys, e.g., 'my_project,other_project')
-- search (Optional[str], partial project name or key, e.g., 'my_proj')
-- analyzed_before (Optional[str], date or datetime for last analysis, e.g., '2017-10-19' or '2017-10-19T13:00:00+0200')
-- page (Optional[int], positive integer, default=1)
-- page_size (Optional[int], positive integer, max 500, default=100)
+- projects (str, comma-separated project keys, e.g., 'my_project,other_project')
+- search (str, partial project name or key, e.g., 'my_proj')
+- analyzed_before (str, date or datetime for last analysis, e.g., '2017-10-19' or '2017-10-19T13:00:00+0200')
+- page (int, positive integer, default=1)
+- page_size (int, positive integer, max 500, default=100)
 Exactly one of projects or search must be provided.
 Returns: Dictionary with project list and pagination info.
 Use to find projects by name, key, or last analysis date.
 """
 )
 def list_projects(
-    projects: Optional[str] = None,
-    search: Optional[str] = None,
-    analyzed_before: Optional[str] = None,
+    projects: str = None,
+    search: str = None,
+    analyzed_before: str = None,
     page: int = 1,
     page_size: int = 100,
 ) -> Dict[str, Any]:
@@ -118,9 +118,9 @@ def list_projects(
     Retrieves a paginated list of projects the authenticated user can access.
 
     Args:
-        projects (Optional[str], optional): Comma-separated list of project keys to filter results (e.g., 'my_project,other_project'). Defaults to None.
-        search (Optional[str], optional): Partial project name or key to filter results (e.g., 'my_proj'). Defaults to None.
-        analyzed_before (Optional[str], optional): Filter projects where the last analysis of all branches is older than this date (exclusive, server timezone). Accepts date ('YYYY-MM-DD') or datetime ('YYYY-MM-DDThh:mm:ssZ'). Example: '2017-10-19' or '2017-10-19T13:00:00+0200'. Defaults to None.
+        projects (str, optional): Comma-separated list of project keys to filter results (e.g., 'my_project,other_project'). Defaults to None.
+        search (str, optional): Partial project name or key to filter results (e.g., 'my_proj'). Defaults to None.
+        analyzed_before (str, optional): Filter projects where the last analysis of all branches is older than this date (exclusive, server timezone). Accepts date ('YYYY-MM-DD') or datetime ('YYYY-MM-DDThh:mm:ssZ'). Example: '2017-10-19' or '2017-10-19T13:00:00+0200'. Defaults to None.
         page (int, optional): Page number for pagination (positive integer). Defaults to 1.
         page_size (int, optional): Number of projects per page (positive integer, max 500). Defaults to 100.
 
@@ -141,8 +141,8 @@ def list_projects(
     description="""
 List projects accessible to the authenticated user
 Parameters:
-- page (Optional[int], positive integer, default=1)
-- page_size (Optional[int], positive integer, max 500, default=100)
+- page (int, positive integer, default=1)
+- page_size (int, positive integer, max 500, default=100)
 Returns: Dictionary with project list and pagination info.
 Use to view projects the user can administer.
 """
@@ -167,18 +167,18 @@ def list_user_projects(page: int = 1, page_size: int = 100) -> Dict[str, Any]:
     description="""
 List projects the authenticated user can scan.
 Parameters:
-- search (Optional[str], partial project name or key, e.g., 'my_proj')
+- search (str, optional) partial project name or key, e.g., 'my_proj')
 Returns: Dictionary with project list.
 Use to identify projects where the user can perform analysis.
 """
 )
-def list_user_scannable_projects(search: Optional[str] = None) -> Dict[str, Any]:
+def list_user_scannable_projects(search: str = None) -> Dict[str, Any]:
     """List projects the authenticated user has permission to scan.
 
     Retrieves a list of projects where the user can perform analysis (scanning).
 
     Args:
-        search (Optional[str], optional): Partial project name or key to filter results. Defaults to None.
+        search (str, optional): Partial project name or key to filter results. Defaults to None.
 
     Returns:
         Dict[str, Any]: A dictionary with project keys.
@@ -192,16 +192,16 @@ def list_user_scannable_projects(search: Optional[str] = None) -> Dict[str, Any]
 List analyses for a SonarQube project with optional filters.
 Parameters:
 - project_key (Required[str], project key, e.g., 'my_project')
-- category (Optional[str], event category, e.g., 'VERSION', 'QUALITY_GATE'). Possible values: VERSION, OTHER, QUALITY_PROFILE, QUALITY_GATE, DEFINITION_CHANGE, ISSUE_DETECTION, SQ_UPGRADE
-- page (Optional[int], positive integer, default=1)
-- page_size (Optional[int], positive integer, max 500, default=100)
+- category (str, optional, event category, e.g., 'VERSION', 'QUALITY_GATE'). Possible values: VERSION, OTHER, QUALITY_PROFILE, QUALITY_GATE, DEFINITION_CHANGE, ISSUE_DETECTION, SQ_UPGRADE
+- page (int, positive integer, default=1)
+- page_size (int, positive integer, max 500, default=100)
 Returns: Dictionary with analysis list and pagination info.
 Use to review a project's analysis history.
 """
 )
 def list_project_analyses(
     project_key: str,
-    category: Optional[str] = None,
+    category: str = None,
     page: int = 1,
     page_size: int = 100,
 ):
@@ -211,7 +211,7 @@ def list_project_analyses(
 
     Args:
         project_key (str): The key of the project (e.g., 'my_project').
-        category (Optional[str], optional): Event category to filter analyses (e.g., 'VERSION', 'QUALITY_GATE'). Possible values: VERSION, OTHER, QUALITY_PROFILE, QUALITY_GATE, DEFINITION_CHANGE, ISSUE_DETECTION, SQ_UPGRADE. Defaults to None.
+        category (str, optional): Event category to filter analyses (e.g., 'VERSION', 'QUALITY_GATE'). Possible values: VERSION, OTHER, QUALITY_PROFILE, QUALITY_GATE, DEFINITION_CHANGE, ISSUE_DETECTION, SQ_UPGRADE. Defaults to None.
         page (int, optional): Page number for pagination (positive integer). Defaults to 1.
         page_size (int, optional): Number of analyses per page (positive integer, max 500). Defaults to 100.
 
@@ -232,25 +232,25 @@ def list_project_analyses(
     description="""
 Retrieve security hotspots in a SonarQube project.
 Parameters:
-- project_key (Required[str], project key, e.g., 'my_project')
-- file_paths (Optional[str], comma-separated file paths, e.g., 'src/main.java,src/utils.js')
-- only_mine (Optional[bool], True to show only current user's hotspots, default=None)
-- page (Optional[int], positive integer for page number, default=1)
-- page_size (Optional[int], positive integer, max 500, default=100)
-- resolution (Optional[str], resolution filter, e.g., 'FIXED', 'SAFE'). Possible values: FIXED, SAFE, ACKNOWLEDGED
-- status (Optional[str], status filter, e.g., 'TO_REVIEW', 'REVIEWED'). Possible values: TO_REVIEW, REVIEWED
+- project_key (Required[str, project key, e.g., 'my_project')
+- file_paths (str, optional, comma-separated file paths, e.g., 'src/main.java,src/utils.js')
+- only_mine (bool, optional, True to show only current user's hotspots, default=None)
+- page (int, optional, positive integer for page number, default=1)
+- page_size (int, optional, positive integer, max 500, default=100)
+- resolution (str, optional, resolution filter, e.g., 'FIXED', 'SAFE'). Possible values: FIXED, SAFE, ACKNOWLEDGED
+- status (str, optional, status filter, e.g., 'TO_REVIEW', 'REVIEWED'). Possible values: TO_REVIEW, REVIEWED
 Returns: Dictionary with hotspot list and pagination info.
 Use to identify and filter security hotspots in a project.
 """
 )
 def get_project_hotspots(
     project_key: str,
-    file_paths: Optional[str] = None,
-    only_mine: Optional[bool] = None,
+    file_paths: str = None,
+    only_mine: bool = None,
     page: int = 1,
     page_size: int = 100,
-    resolution: Optional[str] = None,
-    status: Optional[str] = None,
+    resolution: str = None,
+    status: str = None,
 ):
     """Retrieve security hotspots in a SonarQube project.
 
@@ -258,12 +258,12 @@ def get_project_hotspots(
 
     Args:
         project_key (str): The key of the project (e.g., 'my_project'). Must be non-empty.
-        file_paths (Optional[str], optional): Comma-separated list of file paths to filter hotspots (e.g., 'src/main.java,src/utils.js'). Defaults to None.
-        only_mine (Optional[bool], optional): If True, return only hotspots assigned to the authenticated user. Defaults to None.
+        file_paths (str, optional): Comma-separated list of file paths to filter hotspots (e.g., 'src/main.java,src/utils.js'). Defaults to None.
+        only_mine (bool, optional): If True, return only hotspots assigned to the authenticated user. Defaults to None.
         page (int, optional): Page number for pagination (positive integer, default=1).
         page_size (int, optional): Number of hotspots per page (positive integer, max 500, default=100).
-        resolution (Optional[str], optional): Filter by resolution (e.g., 'FIXED', 'SAFE'). Possible values: FIXED, SAFE, ACKNOWLEDGED.
-        status (Optional[str], optional): Filter by status (e.g., 'TO_REVIEW', 'REVIEWED'). Possible values: TO_REVIEW, REVIEWED.
+        resolution (str, optional): Filter by resolution (e.g., 'FIXED', 'SAFE'). Possible values: FIXED, SAFE, ACKNOWLEDGED.
+        status (str, optional): Filter by status (e.g., 'TO_REVIEW', 'REVIEWED'). Possible values: TO_REVIEW, REVIEWED.
 
     Returns:
         Dict[str, Any]: A dictionary with hotspot details and pagination info.
@@ -310,41 +310,41 @@ def get_hotspot_detail(hotspot_key: str):
     description="""
 Search for issues in SonarQube projects with detailed filters.
 Parameters:
-- additional_fields (Optional[str], comma-separated fields, e.g., 'comments,rules'). Possible values: _all, comments, languages, rules, ruleDescriptionContextKey, transitions, actions, users.
-- assigned (Optional[bool], True for assigned, False for unassigned)
-- assignees (Optional[str], comma-separated logins, e.g., 'user1,__me__').  The value '__me__' can be used as a placeholder for current user who performs the request
-- authors (Optional[str], comma-separated SCM accounts, e.g., 'author1@example.com,linux@fondation.org')
-- components (Optional[str], optional): Comma-separated list of component keys. Retrieve issues associated to a specific list of components (and all its descendants). A component can be a portfolio, project (use project_key), module, directory (use project_key:directory) or file (use_project_key:file_path).
-- issue_statuses (Optional[str], comma-separated statuses, e.g., 'OPEN,FIXED'). Possible values: OPEN, CONFIRMED, FALSE_POSITIVE, ACCEPTED, FIXED.
-- issues (Optional[str], comma-separated issue keys, e.g., '5bccd6e8-f525-43a2-8d76-fcb13dde79ef')
-- page (Optional[int], positive integer, default=1)
-- page_size (Optional[int], positive integer, max 500, default=100)
-- resolutions (Optional[str], comma-separated resolutions, e.g., 'FIXED,FALSE-POSITIVE'). Possible values: FALSE-POSITIVE, WONTFIX, FIXED, REMOVED.
-- resolved (Optional[bool], True for resolved, False for unresolved)
-- scopes (Optional[str], comma-separated scopes, e.g., 'MAIN,TEST'). Possible values: MAIN, TEST.
-- severities (Optional[str], comma-separated severities, e.g., 'BLOCKER,CRITICAL'). Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
-- tags (Optional[str], comma-separated tags, e.g., 'security,bug')
-- types (Optional[str], comma-separated types, e.g., 'BUG,VULNERABILITY'). Possible values: CODE_SMELL, BUG, VULNERABILITY.
+- additional_fields (str, optional, comma-separated fields, e.g., 'comments,rules'). Possible values: _all, comments, languages, rules, ruleDescriptionContextKey, transitions, actions, users.
+- assigned (bool, optional, True for assigned, False for unassigned)
+- assignees (str, optional, comma-separated logins, e.g., 'user1,__me__').  The value '__me__' can be used as a placeholder for current user who performs the request
+- authors (str, optional, comma-separated SCM accounts, e.g., 'author1@example.com,linux@fondation.org')
+- components (str, optional, comma-separated list of component keys). Retrieve issues associated to a specific list of components (and all its descendants). A component can be a portfolio, project (use project_key), module, directory (use project_key:directory) or file (use_project_key:file_path).
+- issue_statuses (str, optional, comma-separated statuses, e.g., 'OPEN,FIXED'). Possible values: OPEN, CONFIRMED, FALSE_POSITIVE, ACCEPTED, FIXED.
+- issues (str, optional, comma-separated issue keys, e.g., '5bccd6e8-f525-43a2-8d76-fcb13dde79ef')
+- page (int, optional, positive integer, default=1)
+- page_size (int, optional, positive integer, max 500, default=100)
+- resolutions (str, optional, comma-separated resolutions, e.g., 'FIXED,FALSE-POSITIVE'). Possible values: FALSE-POSITIVE, WONTFIX, FIXED, REMOVED.
+- resolved (bool, optional, True for resolved, False for unresolved)
+- scopes (str, optional, comma-separated scopes, e.g., 'MAIN,TEST'). Possible values: MAIN, TEST.
+- severities (str, optional, comma-separated severities, e.g., 'BLOCKER,CRITICAL'). Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
+- tags (str, optional, comma-separated tags, e.g., 'security,bug')
+- types (str, optional, comma-separated types, e.g., 'BUG,VULNERABILITY'). Possible values: CODE_SMELL, BUG, VULNERABILITY.
 Returns: Dictionary with issue list and pagination info.
 Use to find specific issues based on multiple criteria.
 """
 )
 def get_issues(
-    additional_fields: Optional[str] = None,
-    assigned: Optional[bool] = None,
-    assignees: Optional[str] = None,
-    authors: Optional[str] = None,
-    components: Optional[str] = None,
-    issue_statuses: Optional[str] = None,
-    issues: Optional[str] = None,
+    additional_fields: str = None,
+    assigned: bool = None,
+    assignees: str = None,
+    authors: str = None,
+    components: str = None,
+    issue_statuses: str = None,
+    issues: str = None,
     page: int = 1,
     page_size: int = 100,
-    resolutions: Optional[str] = None,
-    resolved: Optional[bool] = None,
-    scopes: Optional[str] = None,
-    severities: Optional[str] = None,
-    tags: Optional[str] = None,
-    types: Optional[str] = None,
+    resolutions: str = None,
+    resolved: bool = None,
+    scopes: str = None,
+    severities: str = None,
+    tags: str = None,
+    types: str = None,
 ) -> Dict[str, Any]:
     """
     Search for issues in SonarQube projects with customizable filters.
@@ -353,21 +353,21 @@ def get_issues(
     A component can be a portfolio, project (use project key as a component value), module, directory (use project key:directory as a component value) or file (use project key:file path as a component value).
 
     Args:        
-        additional_fields (Optional[str], optional): Comma-separated fields to include (e.g., 'comments,rules'). Defaults to None. Possible values: _all, comments, languages, rules, ruleDescriptionContextKey, transitions, actions, users.
-        assigned (Optional[bool], optional): True for assigned issues, False for unassigned. Defaults to None.
-        assignees (Optional[str], optional): Comma-separated assignee logins (e.g., 'user1,__me__'). Defaults to None.  The value '__me__' can be used as a placeholder for user who performs the request.
-        authors (Optional[str], optional): Comma-separated SCM author accounts (e.g., 'author1@example.com'). Defaults to None.
-        components (Optional[str], optional): components (Optional[str], optional): Comma-separated list of component keys. Retrieve issues associated to a specific list of components (and all its descendants). A component can be a portfolio, project (use project key as a component value), module, directory (use project key:directory as a component value) or file (use project key:file path as a component value).
-        issue_statuses (Optional[str], optional): Comma-separated statuses (e.g., 'OPEN,FIXED'). Defaults to None. Possible values: OPEN, CONFIRMED, FALSE_POSITIVE, ACCEPTED, FIXED.
-        issues (Optional[str], optional): Comma-separated issue keys (e.g., '5bccd6e8-f525-43a2-8d76-fcb13dde79ef'). Defaults to None.
+        additional_fields (str, optional): Comma-separated fields to include (e.g., 'comments,rules'). Defaults to None. Possible values: _all, comments, languages, rules, ruleDescriptionContextKey, transitions, actions, users.
+        assigned (bool, optional): True for assigned issues, False for unassigned. Defaults to None.
+        assignees (str, optional): Comma-separated assignee logins (e.g., 'user1,__me__'). Defaults to None.  The value '__me__' can be used as a placeholder for user who performs the request.
+        authors (str, optional): Comma-separated SCM author accounts (e.g., 'author1@example.com'). Defaults to None.
+        components (str, optional): components (str, optional): Comma-separated list of component keys. Retrieve issues associated to a specific list of components (and all its descendants). A component can be a portfolio, project (use project key as a component value), module, directory (use project key:directory as a component value) or file (use project key:file path as a component value).
+        issue_statuses (str, optional): Comma-separated statuses (e.g., 'OPEN,FIXED'). Defaults to None. Possible values: OPEN, CONFIRMED, FALSE_POSITIVE, ACCEPTED, FIXED.
+        issues (str, optional): Comma-separated issue keys (e.g., '5bccd6e8-f525-43a2-8d76-fcb13dde79ef'). Defaults to None.
         page (int, optional): Page number for pagination (positive integer). Defaults to 1.
         page_size (int, optional): Number of issues per page (positive integer, max 500). Defaults to 100.
-        resolutions (Optional[str], optional): Comma-separated resolutions (e.g., 'FIXED,FALSE-POSITIVE'). Defaults to None. Possible values: FALSE-POSITIVE, WONTFIX, FIXED, REMOVED.
-        resolved (Optional[bool], optional): True for resolved issues, False for unresolved. Defaults to None.
-        scopes (Optional[str], optional): Comma-separated scopes (e.g., 'MAIN,TEST'). Defaults to None. Possible values: MAIN, TEST.
-        severities (Optional[str], optional): Comma-separated severities (e.g., 'BLOCKER,CRITICAL'). Defaults to None. Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
-        tags (Optional[str], optional): Comma-separated tags (e.g., 'security,bug'). Defaults to None.
-        types (Optional[str], optional): Comma-separated types (e.g., 'BUG,VULNERABILITY'). Defaults to None. Possible values: CODE_SMELL, BUG, VULNERABILITY.
+        resolutions (str, optional): Comma-separated resolutions (e.g., 'FIXED,FALSE-POSITIVE'). Defaults to None. Possible values: FALSE-POSITIVE, WONTFIX, FIXED, REMOVED.
+        resolved (bool, optional): True for resolved issues, False for unresolved. Defaults to None.
+        scopes (str, optional): Comma-separated scopes (e.g., 'MAIN,TEST'). Defaults to None. Possible values: MAIN, TEST.
+        severities (str, optional): Comma-separated severities (e.g., 'BLOCKER,CRITICAL'). Defaults to None. Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
+        tags (str, optional): Comma-separated tags (e.g., 'security,bug'). Defaults to None.
+        types (str, optional): Comma-separated types (e.g., 'BUG,VULNERABILITY'). Defaults to None. Possible values: CODE_SMELL, BUG, VULNERABILITY.
 
     Returns:
         Dict[str, Any]: A dictionary with issue details and pagination info.
@@ -397,22 +397,22 @@ def get_issues(
     description="""
 Retrieve SCM authors of issues for a SonarQube project.
 Parameters:
-- project_key (Optional[str], project key, e.g., 'my_project')
-- page (Optional[int], positive integer, default=1)
-- page_size (Optional[int], positive integer, max 100, default=10)
+- project_key (str, optional, project key, e.g., 'my_project')
+- page (int, optional, positive integer, default=1)
+- page_size (int, optional, positive integer, max 100, default=10)
 Returns: Dictionary with list of SCM author accounts (e.g., emails).
 Use to identify contributors to issues in a project.
 """
 )
 def get_issues_authors(
-    project_key: Optional[str] = None, page: int = 1, page_size: int = 10
+    project_key: str = None, page: int = 1, page_size: int = 10
 ) -> Dict[str, Any]:
     """Retrieve SCM authors associated with issues in a SonarQube project.
 
     Lists unique SCM accounts (e.g., email addresses) of authors for issues.
 
     Args:
-        project_key (Optional[str], optional): Project key to filter authors (e.g., 'my_project'). Defaults to None.
+        project_key (str, optional): Project key to filter authors (e.g., 'my_project'). Defaults to None.
         page (int, optional): Page number for pagination (positive integer). Defaults to 1.
         page_size (int, optional): Number of authors per page (positive integer, max 100). Defaults to 100.
 
@@ -453,8 +453,8 @@ def get_metrics_type() -> Dict[str, Any]:
     description="""
 Retrieve all available metrics in SonarQube with pagination.
 Parameters:
-- page (Optional[int], positive integer, default=1)
-- page_size (Optional[int], positive integer, max 500, default=100)
+- page (int, positive integer, default=1)
+- page_size (int, positive integer, max 500, default=100)
 Returns: Dictionary with metric list and pagination info.
 Use to explore metrics like 'ncloc', 'complexity' for analysis.
 """
@@ -526,7 +526,7 @@ def get_quality_gates_details(name: str) -> Dict[str, Any]:
     description="""
 Get the quality gate associated with a SonarQube project.
 Parameters:
-- project_key (Required[str], project key, e.g., 'my_project')
+- project_key (Required[str, project key, e.g., 'my_project')
 Returns: Dictionary with assigned quality gate details.
 Use to check which quality gate is applied to a project.
 """
@@ -550,24 +550,24 @@ def get_quality_gates_by_project(project_key: str) -> Dict[str, Any]:
     description="""
 Retrieve quality gate status for a SonarQube project or analysis.
 Parameters:
-- analysis_id (Optional[str], analysis ID)
-- project_key (Optional[str], project key, e.g., 'my_project')
+- analysis_id (str, optional, analysis ID)
+- project_key (str, optional, project key, e.g., 'my_project')
 Exactly one of analysis_id or project_key must be provided.
 Returns: Dictionary with quality gate status (e.g., 'OK', 'ERROR') and conditions.
 Use to evaluate quality gate results for a project or analysis.
 """
 )
 def get_quality_gates_project_status(
-    analysis_id: Optional[str] = None,
-    project_key: Optional[str] = None,
+    analysis_id: str = None,
+    project_key: str = None,
 ) -> Dict[str, Any]:
     """Retrieve the quality gate status for a project or specific analysis.
 
     Exactly one of `analysis_id` or `project_key` must be provided.
 
     Args:
-        analysis_id (Optional[str], optional): ID of the analysis to check. Defaults to None.
-        project_key (Optional[str], optional): Key of the project to check (e.g., 'my_project'). Defaults to None.
+        analysis_id (str, optional): ID of the analysis to check. Defaults to None.
+        project_key (str, optional): Key of the project to check (e.g., 'my_project'). Defaults to None.
 
     Returns:
         Dict[str, Any]: A dictionary with quality gate status details.
@@ -584,17 +584,17 @@ def get_quality_gates_project_status(
     description="""
 Retrieve SonarQube quality profiles.
 Parameters:
-- defaults (Optional[bool], True to show only default profiles, default=False)
-- language (Optional[str], programming language, e.g., 'java', 'py')
-- project_key (Optional[str], project key, e.g., 'my_project')
+- defaults (bool, optional, True to show only default profiles, default=False)
+- language (str, optional, programming language, e.g., 'java', 'py')
+- project_key (str, project key, e.g., 'my_project')
 Returns: Dictionary with quality profile details.
 Use to find quality profiles by language or project association.
 """
 )
 def get_quality_profiles(
     defaults: bool = False,
-    language: Optional[str] = None,
-    project_key: Optional[str] = None,
+    language: str = None,
+    project_key: str = None,
 ):
     """Search for quality profiles in SonarQube.
 
@@ -602,8 +602,8 @@ def get_quality_profiles(
 
     Args:
         defaults (bool, optional): If True, return only default profiles. Defaults to False.
-        language (Optional[str], optional): Filter by programming language (e.g., 'java', 'py'). Defaults to None.
-        project_key (Optional[str], optional): Filter by project key (e.g., 'my_project'). Defaults to None.
+        language (str, optional): Filter by programming language (e.g., 'java', 'py'). Defaults to None.
+        project_key (str, optional): Filter by project key (e.g., 'my_project'). Defaults to None.
 
     Returns:
         Dict[str, Any]: A dictionary with quality profile details.
@@ -621,11 +621,11 @@ def get_quality_profiles(
     description="""
 Retrieve SonarQube rules with optional filters.
 Parameters:
-- page (Optional[int], positive integer for page number, default=1)
-- page_size (Optional[int], positive integer, max 500, default=100)
-- severities (Optional[str], comma-separated severities, e.g., 'BLOCKER,CRITICAL'). Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
-- statuses (Optional[str], comma-separated statuses, e.g., 'BETA,READY'). Possible values: BETA, DEPRECATED, READY, REMOVED.
-- types (Optional[str], comma-separated types, e.g., 'BUG,CODE_SMELL'). Possible values: CODE_SMELL, BUG, VULNERABILITY, SECURITY_HOTSPOT.
+- page (int, optional, positive integer for page number, default=1)
+- page_size (int, optional, positive integer, max 500, default=100)
+- severities (str, optional, comma-separated severities, e.g., 'BLOCKER,CRITICAL'). Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
+- statuses (str, optional, comma-separated statuses, e.g., 'BETA,READY'). Possible values: BETA, DEPRECATED, READY, REMOVED.
+- types (str, optional, comma-separated types, e.g., 'BUG,CODE_SMELL'). Possible values: CODE_SMELL, BUG, VULNERABILITY, SECURITY_HOTSPOT.
 Returns: Dictionary with rule list and pagination info.
 Use to find rules by severity, status, or type.
 """
@@ -633,10 +633,10 @@ Use to find rules by severity, status, or type.
 def get_rules(
     page: int = 1,
     page_size: int = 100,
-    severities: Optional[str] = None,
-    statuses: Optional[str] = None,
-    languages: Optional[str] = None,
-    types: Optional[str] = None,
+    severities: str = None,
+    statuses: str = None,
+    languages: str = None,
+    types: str = None,
 ):
     """Retrieve for rules in SonarQube.
 
@@ -645,10 +645,10 @@ def get_rules(
     Args:
         page (int, optional): Page number for pagination (positive integer, default=1).
         page_size (int, optional): Number of rules per page (positive integer, max 500, default=100).
-        severities (Optional[str], optional): Comma-separated list of severities (e.g., 'BLOCKER,CRITICAL'). Defaults to None. Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
-        statuses (Optional[str], optional): Comma-separated list of statuses (e.g., 'BETA,READY'). Defaults to None. Possible values: BETA, DEPRECATED, READY, REMOVED.
-        languages (Optional[str], optional): Comma-separated list of languages (e.g. 'java,js'). Defaults to None
-        types (Optional[str], optional): Comma-separated list of rule types (e.g., 'BUG,CODE_SMELL'). Defaults to None. Possible values: CODE_SMELL, BUG, VULNERABILITY, SECURITY_HOTSPOT.
+        severities (str, optional): Comma-separated list of severities (e.g., 'BLOCKER,CRITICAL'). Defaults to None. Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
+        statuses (str, optional): Comma-separated list of statuses (e.g., 'BETA,READY'). Defaults to None. Possible values: BETA, DEPRECATED, READY, REMOVED.
+        languages (str, optional): Comma-separated list of languages (e.g. 'java,js'). Defaults to None
+        types (str, optional): Comma-separated list of rule types (e.g., 'BUG,CODE_SMELL'). Defaults to None. Possible values: CODE_SMELL, BUG, VULNERABILITY, SECURITY_HOTSPOT.
 
     Returns:
         Dict[str, Any]: A dictionary with rule details and pagination info.
@@ -670,19 +670,19 @@ def get_rules(
 Retrieve details of a specific SonarQube rule.
 Parameters:
 - rule_key (Required[str], rule key, e.g., 'squid:S1234')
-- actives (Optional[bool], True to include active profile status, default=False)
+- actives (bool, optional, True to include active profile status, default=False)
 Returns: Dictionary with rule details (e.g., name, severity, active profiles).
 Use to inspect a specific rule's properties.
 """
 )
-def get_rule_details(rule_key: str, actives: Optional[bool] = False):
+def get_rule_details(rule_key: str, actives: bool = False):
     """Retrieve detailed information about a specific SonarQube rule.
 
     Provides rule details, including description and active status in profiles if requested.
 
     Args:
         rule_key (str): The key of the rule. Must be non-empty.
-        actives (Optional[bool], optional): If True, include active status in quality profiles. Defaults to False.
+        actives (bool, optional): If True, include active status in quality profiles. Defaults to False.
 
     Returns:
         Dict[str, Any]: A dictionary with rule details."""
@@ -698,8 +698,8 @@ Retrieve source code for a file in a SonarQube project.
 Parameters:
 - project_key (Required[str], project key, e.g., 'my_project')
 - file_path (Required[str], file path, e.g., 'src/main.java')
-- start (Optional[int], positive integer for start line)
-- end (Optional[int], positive integer, >= start, for end line)
+- start (int, optional, positive integer for start line)
+- end (int, optional, positive integer, >= start, for end line)
 Returns: Dictionary with source code lines and line numbers.
 Use to view specific lines of a file's source code.
 """
@@ -707,8 +707,8 @@ Use to view specific lines of a file's source code.
 def get_source(
     project_key: str,
     file_path: str,
-    start: Optional[int] = None,
-    end: Optional[int] = None,
+    start: int = None,
+    end: int = None,
 ) -> Dict[str, Any]:
     """Retrieve source code for a file in a SonarQube project.
 
@@ -717,8 +717,8 @@ def get_source(
     Args:
         project_key (str): Key of the project (e.g., 'my_project').
         file_path (str): Path to the file within the project (e.g., 'src/main.java').
-        start (Optional[int], optional): Starting line number (positive integer). Defaults to None.
-        end (Optional[int], optional): Ending line number (positive integer, >= start). Defaults to None.
+        start (int, optional): Starting line number (positive integer). Defaults to None.
+        end (int, optional): Ending line number (positive integer, >= start). Defaults to None.
 
     Returns:
         Dict[str, Any]: A dictionary with source code lines.
@@ -735,9 +735,9 @@ Retrieve SCM information for a file in a SonarQube project.
 Parameters:
 - project_key (Required[str], project key, e.g., 'my_project')
 - file_path (Required[str], file path, e.g., 'src/main.java')
-- start (Optional[int], positive integer for start line)
-- end (Optional[int], positive integer, >= start, for end line)
-- commits_by_line (Optional[bool], True to list commits per line, False to group by commit, default=False)
+- start (int, optional, positive integer for start line)
+- end (int, optional, positive integer, >= start, for end line)
+- commits_by_line (bool, True to list commits per line, False to group by commit, default=False)
 Returns: Dictionary with SCM details (author, date, revision) per line.
 Use to track changes and contributors for a file.
 """
@@ -745,8 +745,8 @@ Use to track changes and contributors for a file.
 def get_scm_info(
     project_key: str,
     file_path: str,
-    start: Optional[int] = None,
-    end: Optional[int] = None,
+    start: int = None,
+    end: int = None,
     commits_by_line: bool = False,
 ) -> Dict[str, Any]:
     """Retrieve SCM information for a file in a SonarQube project.
@@ -756,9 +756,9 @@ def get_scm_info(
     Args:
         project_key (str): Key of the project (e.g., 'my-project').
         file_path (str): Path to the file within the project (e.g., "src/main.java").
-        start (Optional[int]): Starting line number (positive integer). Defaults to None.
-        end (Optional[int]): Ending line number (positive integer, >= start). Defaults to None.
-        commits_by_line (Optional[bool], optional): If True, include commits for each line; if False, group by commit. Defaults to False.
+        start (int]): Starting line number (positive integer). Defaults to None.
+        end (int]): Ending line number (positive integer, >= start). Defaults to None.
+        commits_by_line (bool, optional): If True, include commits for each line; if False, group by commit. Defaults to False.
 
     Returns:
         Dict[str, Any]: A dictionary with SCM details per line.

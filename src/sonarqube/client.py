@@ -1,6 +1,7 @@
 import logging
 import httpx
 import json
+import time
 from typing import Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
@@ -90,10 +91,11 @@ class SonarQubeClient:
                 or a dictionary with 'error' and 'details' keys on failure.
         """
         if health_check and not self.connected:
-            return {
-                "error": "SonarQube client is not healthy",
-                "details": self.connection_message,
-            }
+            if not self.__reconnect():
+                return {
+                    "error": "SonarQube client is not healthy",
+                    "details": self.connection_message,
+                }
 
         url = f"{self.base_url.rstrip('/')}/{endpoint.lstrip('/')}"
         headers = {
@@ -225,6 +227,31 @@ class SonarQubeClient:
 
         self.connected = True
         return True
+
+    def __reconnect(self, max_attempts: int = 3, backoff_factor: float = 1.0) -> bool:
+        """Attempt to reconnect and revalidate the SonarQube server connection.
+
+        Args:
+            max_attempts (int): Maximum number of reconnection attempts. Defaults to 3.
+            backoff_factor (float): Factor for exponential backoff between retries. Defaults to 1.0.
+
+        Returns:
+            bool: True if reconnection and validation are successful, False otherwise.
+        """
+        for attempt in range(max_attempts):
+            if self.session:
+                self.session.close()
+            self.connected = False
+            self.connection_message = ""
+            self.__setup()
+            if self.connected:
+                logger.info(f"Reconnection successful on attempt {attempt + 1}")
+                return True
+            logger.info(f"Reconnection attempt {attempt + 1} failed: {self.connection_message}")
+            time.sleep(backoff_factor * (2 ** attempt))  # Exponential backoff
+        logger.error("All reconnection attempts failed")
+        return False
+
 
     def get_system_health(self) -> Dict[str, Any]:
         """Retrieve SonarQube system health status.
