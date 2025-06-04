@@ -3,7 +3,7 @@
         "sonarqube": {
             "command": "python",
             "args": [
-                "sonar_mcp.py"
+                "src/__main__.py"
             ],
             "env": {
                 "SONARQUBE_URL": "",
