@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Optional, Dict, Any
 from server import mcp, sonar_client
 
 
@@ -19,13 +19,13 @@ Use to identify and filter security hotspots in a project.
 )
 async def get_project_hotspots(
     project_key: str,
-    file_paths: str = None,
-    only_mine: bool = None,
+    file_paths: Optional[str] = None,
+    only_mine: Optional[bool] = None,
     page: int = 1,
     page_size: int = 100,
-    resolution: str = None,
-    status: str = None,
-):
+    resolution: Optional[str] = None,
+    status: Optional[str] = None,
+) -> Dict[str, Any]:
     """Retrieve security hotspots in a SonarQube project.
 
     Retrieves a paginated list of security hotspots, filtered by project, file paths, ownership, resolution, or status.

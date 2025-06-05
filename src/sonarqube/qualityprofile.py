@@ -7,6 +7,56 @@ logger = logging.getLogger(__name__)
 
 class SonarQubeQualityProfile(SonarQubeBase):
 
+    async def add_quality_profile_project(
+        self,
+        language: str,
+        project_key: str,
+        quality_profile: str,
+    ) -> Dict[str, Any]:
+
+        endpoint = "/api/qualityprofiles/add_project"
+
+        params = {
+            "language": language,
+            "project": project_key,
+            "qualityProfile": quality_profile,
+        }
+
+        response = await self._make_request(
+            endpoint=endpoint, method="POST", params=params
+        )
+        if isinstance(response, dict) and "error" in response:
+            logger.error(
+                f"Add quality profile for project failed: {response.get('details', 'Unknown error')}"
+            )
+
+        return response
+
+    async def remove_quality_profile_project(
+        self,
+        language: str,
+        project_key: str,
+        quality_profile: str,
+    ) -> Dict[str, Any]:
+
+        endpoint = "/api/qualityprofiles/remove_project"
+
+        params = {
+            "language": language,
+            "project": project_key,
+            "qualityProfile": quality_profile,
+        }
+
+        response = await self._make_request(
+            endpoint=endpoint, method="POST", params=params
+        )
+        if isinstance(response, dict) and "error" in response:
+            logger.error(
+                f"Remove quality profile for project failed: {response.get('details', 'Unknown error')}"
+            )
+
+        return response
+
     async def get_quality_profiles(
         self,
         defaults: bool = False,

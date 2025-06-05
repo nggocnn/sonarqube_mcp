@@ -4,7 +4,8 @@ from typing import Optional, Dict, Any
 from .hotspot import SonarQubeHotSpot
 from .issue import SonarQubeIssue
 from .metrics import SonarQubeMetric
-from .project import SonarQubeProject
+from .permission import SonarQubePermission
+from .projects import SonarQubeProjects
 from .qualitygate import SonarQubeQualityGate
 from .qualityprofile import SonarQubeQualityProfile
 from .rule import SonarQubeRule
@@ -18,7 +19,8 @@ class SonarQubeClient(
     SonarQubeHotSpot,
     SonarQubeIssue,
     SonarQubeMetric,
-    SonarQubeProject,
+    SonarQubePermission,
+    SonarQubeProjects,
     SonarQubeQualityGate,
     SonarQubeQualityProfile,
     SonarQubeRule,

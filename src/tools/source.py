@@ -17,8 +17,8 @@ Use to view specific lines of a file's source code.
 async def get_source(
     project_key: str,
     file_path: str,
-    start: int = None,
-    end: int = None,
+    start: Optional[int] = None,
+    end: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Retrieve source code for a file in a SonarQube project.
 
@@ -55,8 +55,8 @@ Use to track changes and contributors for a file.
 async def get_scm_info(
     project_key: str,
     file_path: str,
-    start: int = None,
-    end: int = None,
+    start: Optional[int] = None,
+    end: Optional[int] = None,
     commits_by_line: bool = False,
 ) -> Dict[str, Any]:
     """Retrieve SCM information for a file in a SonarQube project.

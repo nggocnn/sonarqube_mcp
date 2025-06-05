@@ -5,9 +5,36 @@ from .base import SonarQubeBase
 logger = logging.getLogger(__name__)
 
 
-class SonarQubeProject(SonarQubeBase):
+class SonarQubeProjects(SonarQubeBase):
 
-    async def list_projects(
+    async def create_project(
+        self,
+        project_name: str,
+        project_key: str,
+        main_branch: str = "main",
+        new_code_definition_type: Optional[str] = None,
+        new_code_definition_value: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        endpoint = "/api/projects/create"
+
+        params = {
+            "name": project_name,
+            "project": project_key,
+            "mainBranch": main_branch,
+            "newCodeDefinitionType": new_code_definition_type,
+            "newCodeDefinitionValue": new_code_definition_value,
+        }
+
+        params = {k: v for k, v in params.items() if v is not None}
+
+        response = await self._make_request(endpoint=endpoint, method="POST", params=params)
+        if isinstance(response, dict) and "error" in response:
+            logger.error(
+                f"Create project failed: {response.get('details', 'Unknown error')}"
+            )
+        return response
+
+    async def get_projects(
         self,
         analyzed_before: Optional[str] = None,
         page: int = 1,
@@ -59,7 +86,7 @@ class SonarQubeProject(SonarQubeBase):
             )
         return response
 
-    async def list_user_projects(
+    async def get_user_projects(
         self, page: int = 1, page_size: int = 100
     ) -> Dict[str, Any]:
         """Retrieve a list of SonarQube projects for which the authenticated user has 'Administer' permission.
@@ -94,7 +121,7 @@ class SonarQubeProject(SonarQubeBase):
             )
         return response
 
-    async def list_user_scannable_projects(
+    async def get_user_scannable_projects(
         self, search: Optional[str] = None
     ) -> Dict[str, Any]:
         """Retrieve a list of SonarQube projects that the authenticated user has permission to scan.
@@ -114,7 +141,7 @@ class SonarQubeProject(SonarQubeBase):
             )
         return response
 
-    async def list_project_analyses(
+    async def get_project_analyses(
         self,
         project_key: str,
         category: Optional[str] = None,

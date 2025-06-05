@@ -1,5 +1,41 @@
-from typing import Dict, Any
+from typing import Optional, Dict, Any
 from server import mcp, sonar_client
+
+
+@mcp.tool(
+    description="""
+"""
+)
+async def add_quality_profile_project(
+    language: str,
+    project_key: str,
+    quality_profile: str,
+) -> Dict[str, Any]:
+    response = await sonar_client.add_quality_profile_project(
+        language=language,
+        project_key=project_key,
+        quality_profile=quality_profile,
+    )
+
+    return response
+
+
+@mcp.tool(
+    description="""
+"""
+)
+async def remove_quality_profile_project(
+    language: str,
+    project_key: str,
+    quality_profile: str,
+) -> Dict[str, Any]:
+    response = await sonar_client.remove_quality_profile_project(
+        language=language,
+        project_key=project_key,
+        quality_profile=quality_profile,
+    )
+
+    return response
 
 
 @mcp.tool(
@@ -15,8 +51,8 @@ Use to find quality profiles by language or project associations.
 )
 async def get_quality_profiles(
     defaults: bool = False,
-    language: str = None,
-    project_key: str = None,
+    language: Optional[str] = None,
+    project_key: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Search for quality profiles in SonarQube.
 

@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Optional, Dict, Any
 from server import mcp, sonar_client
 
 
@@ -26,21 +26,21 @@ Use to find specific issues based on multiple criteria.
 """
 )
 async def get_issues(
-    additional_fields: str = None,
-    assigned: bool = None,
-    assignees: str = None,
-    authors: str = None,
-    components: str = None,
-    issue_statuses: str = None,
-    issues: str = None,
+    additional_fields: Optional[str] = None,
+    assigned: Optional[bool] = None,
+    assignees: Optional[str] = None,
+    authors: Optional[str] = None,
+    components: Optional[str] = None,
+    issue_statuses: Optional[str] = None,
+    issues: Optional[str] = None,
     page: int = 1,
     page_size: int = 100,
-    resolutions: str = None,
-    resolved: bool = None,
-    scopes: str = None,
-    severities: str = None,
-    tags: str = None,
-    types: str = None,
+    resolutions: Optional[str] = None,
+    resolved: Optional[bool] = None,
+    scopes: Optional[str] = None,
+    severities: Optional[str] = None,
+    tags: Optional[str] = None,
+    types: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Search for issues in SonarQube projects with customizable filters.
@@ -101,7 +101,7 @@ Use to identify contributors to issues in a project.
 """
 )
 async def get_issues_authors(
-    project_key: str = None, page: int = 1, page_size: int = 10
+    project_key: Optional[str] = None, page: int = 1, page_size: int = 10
 ) -> Dict[str, Any]:
     """Retrieve SCM authors associated with issues in a SonarQube project.
 

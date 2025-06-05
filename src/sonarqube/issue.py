@@ -130,6 +130,7 @@ class SonarQubeIssue(SonarQubeBase):
         endpoint = "/api/issues/authors"
 
         params = {"project": project_key, "p": page, "ps": page_size}
+
         params = {k: v for k, v in params.items() if v is not None}
 
         response = await self._make_request(endpoint=endpoint, params=params)

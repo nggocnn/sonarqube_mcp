@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Optional, Dict, Any
 from server import mcp, sonar_client
 
 
@@ -18,10 +18,10 @@ Use to find rules by severity, status, or type.
 async def get_rules(
     page: int = 1,
     page_size: int = 100,
-    severities: str = None,
-    statuses: str = None,
-    languages: str = None,
-    types: str = None,
+    severities: Optional[str] = None,
+    statuses: Optional[str] = None,
+    languages: Optional[str] = None,
+    types: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Retrieve for rules in SonarQube.
 

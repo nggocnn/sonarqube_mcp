@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Optional, Dict, Any
 from server import mcp, sonar_client
 
 
@@ -81,8 +81,8 @@ Use to evaluate quality gate results for a project or analysis.
 """
 )
 async def get_quality_gates_project_status(
-    analysis_id: str = None,
-    project_key: str = None,
+    analysis_id: Optional[str] = None,
+    project_key: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Retrieve the quality gate status for a project or specific analysis.
 
