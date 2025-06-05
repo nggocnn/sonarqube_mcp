@@ -5,4 +5,4 @@ WORKDIR /app
 COPY . /app
 RUN pip install -r requirements.txt
 
-CMD ["python", "src/__main__.py"]
+CMD ["python", "src/__main__.py", "--transport", "sse"]
