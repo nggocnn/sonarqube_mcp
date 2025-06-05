@@ -4,7 +4,16 @@ from server import mcp, sonar_client
 
 @mcp.tool(
     description="""
-
+Create a new SonarQube project.
+Parameters:
+- project_name (str, required, project name, e.g., 'SonarQube', max 500 characters)
+- project_key (str, required, unique project key, e.g., 'my_project', max 400 characters)
+- main_branch (str, optional, main branch name, e.g., 'develop', default='main')
+- new_code_definition_type (str, optional, new code definition type, e.g., 'NUMBER_OF_DAYS', values: PREVIOUS_VERSION, NUMBER_OF_DAYS, REFERENCE_BRANCH)
+- new_code_definition_value (str, optional, new code definition value, e.g., '30' for NUMBER_OF_DAYS, 1-90)
+- visibility (str, optional, project visibility, e.g., 'public', values: private, public)
+Returns: Dictionary with created project details.
+Use to create a new project.
 """
 )
 async def create_project(
@@ -14,6 +23,20 @@ async def create_project(
     new_code_definition_type: Optional[str] = None,
     new_code_definition_value: Optional[str] = None,
 ) -> Dict[str, Any]:
+    """Creates a new project in SonarQube.
+
+    Args:
+        project_name (str): The name of the project (max length: 500 characters, abbreviated if longer).
+        project_key (str): A unique key identifier for the project (max length: 400 characters).
+        main_branch (str, optional): The name of the main branch (default: "main"). Available since version 9.8.
+        new_code_definition_type (Optional[str], optional): The type of new code definition. Allowed values: "PREVIOUS_VERSION", "NUMBER_OF_DAYS", "REFERENCE_BRANCH" (defaults to main branch). Available since version 10.1.
+        new_code_definition_value (Optional[str], optional): The value for the new code definition. Expected values:
+            - None for "PREVIOUS_VERSION" or "REFERENCE_BRANCH".
+            - A number between 1 and 90 for "NUMBER_OF_DAYS".
+
+    Returns:
+        Dict[str, Any]: A dictionary with details of the created project. If the request fails, it may include an 'error' key.
+    """
     response = await sonar_client.create_project(
         project_name=project_name,
         project_key=project_key,
@@ -115,7 +138,7 @@ async def get_user_scannable_projects(search: Optional[str] = None) -> Dict[str,
     Returns:
         Dict[str, Any]: A dictionary with project keys.
     """
-    response = await sonar_client.list_user_scannable_projects(search=search)
+    response = await sonar_client.get_user_scannable_projects(search=search)
     return response
 
 

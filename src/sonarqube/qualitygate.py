@@ -89,17 +89,11 @@ class SonarQubeQualityGate(SonarQubeBase):
         Returns:
             Dict[str, Any]: Quality gate status or error response.
         """
-        if (project_key is None) == (analysis_id is None):
-            logger.error("Exactly one of analysis_id or project_key must be provided.")
-            return {
-                "error": "Invalid parameters",
-                "details": "Exactly one of analysis_id or project_key must be provided.",
-            }
 
         endpoint = "/api/qualitygates/project_status"
         params = {
-            "projectKey": project_key,
-            "analysisId": analysis_id,
+            "projectKey": project_key if project_key else None,
+            "analysisId": analysis_id if analysis_id else None,
             "branch": branch,
         }
         params = {k: v for k, v in params.items() if v is not None}

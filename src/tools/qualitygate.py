@@ -81,8 +81,8 @@ Use to evaluate quality gate results for a project or analysis.
 """
 )
 async def get_quality_gates_project_status(
-    analysis_id: Optional[str] = None,
-    project_key: Optional[str] = None,
+    analysis_id: str = "",
+    project_key: str = "",
 ) -> Dict[str, Any]:
     """Retrieve the quality gate status for a project or specific analysis.
 

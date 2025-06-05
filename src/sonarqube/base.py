@@ -19,11 +19,11 @@ class SonarQubeBase:
         """Initialize a SonarQube client instance.
 
         Args:
-          base_url (str): The base URL of the SonarQube server (e.g., 'https://sonarqube.example.com').
-          token (str): The authentication token for accessing the SonarQube API.
-          organization (Optional[str], optional): The organization key for organization-specific requests. Defaults to None.
-          timeout (float, optional): The timeout for API requests in seconds. Defaults to 10.0.
-          max_connections (int, optional): Maximum number of concurrent HTTP connections. Defaults to 20.
+            base_url (str): The base URL of the SonarQube server (e.g., 'https://sonarqube.example.com').
+            token (str): The authentication token for accessing the SonarQube API.
+            organization (Optional[str], optional): The organization key for organization-specific requests. Defaults to None.
+            timeout (float, optional): The timeout for API requests in seconds. Defaults to 10.0.
+            max_connections (int, optional): Maximum number of concurrent HTTP connections. Defaults to 20.
         """
         self.base_url = base_url.rstrip("/")
         self.token = token.strip()

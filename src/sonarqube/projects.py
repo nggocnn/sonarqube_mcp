@@ -15,6 +15,21 @@ class SonarQubeProjects(SonarQubeBase):
         new_code_definition_type: Optional[str] = None,
         new_code_definition_value: Optional[str] = None,
     ) -> Dict[str, Any]:
+        """Create a new SonarQube project.
+
+        Args:
+            project_name (str): The name of the project (max length: 500 characters, abbreviated if longer).
+            project_key (str): A unique key identifier for the project (max length: 400 characters).
+            main_branch (str, optional): The name of the main branch (default: "main").
+            new_code_definition_type (str, optional): The type of new code definition. Allowed values: "PREVIOUS_VERSION", "NUMBER_OF_DAYS", "REFERENCE_BRANCH" (defaults to main branch).
+            new_code_definition_value (Optional[str], optional): The value for the new code definition.
+                Expected values:
+                - None for "PREVIOUS_VERSION" or "REFERENCE_BRANCH".
+                - A number between 1 and 90 for "NUMBER_OF_DAYS".
+
+        Returns:
+            Dict[str, Any]: Dictionary containing details of the created project.
+        """
         endpoint = "/api/projects/create"
 
         params = {

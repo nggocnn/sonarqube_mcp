@@ -4,13 +4,27 @@ from server import mcp, sonar_client
 
 @mcp.tool(
     description="""
+Associate a quality profile with a project in SonarQube.
+Parameters:
+- language (str, required, programming language, e.g., 'java', 'py')
+- project_key (str, required, project key, e.g., 'my_project')
+- quality_profile (str, required, quality profile name, e.g., 'Sonar way')
+Use to link a quality profile to a project for code analysis.
 """
 )
 async def add_quality_profile_project(
     language: str,
     project_key: str,
     quality_profile: str,
-) -> Dict[str, Any]:
+):
+    """Associates a quality profile with a project in SonarQube.
+
+    Args:
+        language (str): The programming language of the quality profile (e.g., 'java', 'py').
+        project_key (str): The key of the project to associate with the quality profile (e.g., 'my_project').
+        quality_profile (str): The name of the quality profile to apply (e.g., 'Sonar way').
+    """
+
     response = await sonar_client.add_quality_profile_project(
         language=language,
         project_key=project_key,
@@ -22,13 +36,27 @@ async def add_quality_profile_project(
 
 @mcp.tool(
     description="""
+Remove a quality profile association from a project in SonarQube.
+Parameters:
+- language (str, required, programming language, e.g., 'java', 'py')
+- project_key (str, required, project key, e.g., 'my_project')
+- quality_profile (str, required, quality profile name, e.g., 'Sonar way')
+Use to disassociate a quality profile from a project.
 """
 )
 async def remove_quality_profile_project(
     language: str,
     project_key: str,
     quality_profile: str,
-) -> Dict[str, Any]:
+):
+    """Removes a quality profile association from a project in SonarQube.
+
+    Args:
+        language (str): The programming language of the quality profile (e.g., 'java', 'py').
+        project_key (str): The key of the project to remove the quality profile from (e.g., 'my_project').
+        quality_profile (str): The name of the quality profile to remove (e.g., 'Sonar way').
+    """
+
     response = await sonar_client.remove_quality_profile_project(
         language=language,
         project_key=project_key,

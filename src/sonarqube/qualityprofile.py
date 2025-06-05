@@ -12,7 +12,14 @@ class SonarQubeQualityProfile(SonarQubeBase):
         language: str,
         project_key: str,
         quality_profile: str,
-    ) -> Dict[str, Any]:
+    ):
+        """Associates a quality profile with a project in SonarQube.
+        
+        Args:
+            language (str): The programming language of the quality profile (e.g., 'java', 'py').
+            project_key (str): The key of the project to associate with the quality profile (e.g., 'my_project').
+            quality_profile (str): The name of the quality profile to apply (e.g., 'Sonar way').
+        """
 
         endpoint = "/api/qualityprofiles/add_project"
 
@@ -37,7 +44,14 @@ class SonarQubeQualityProfile(SonarQubeBase):
         language: str,
         project_key: str,
         quality_profile: str,
-    ) -> Dict[str, Any]:
+    ):
+        """Removes a quality profile association from a project in SonarQube.
+        
+        Args:
+            language (str): The programming language of the quality profile (e.g., 'java', 'py').
+            project_key (str): The key of the project to remove the quality profile from (e.g., 'my_project').
+            quality_profile (str): The name of the quality profile to remove (e.g., 'Sonar way').
+        """
 
         endpoint = "/api/qualityprofiles/remove_project"
 

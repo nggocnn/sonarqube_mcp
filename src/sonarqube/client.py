@@ -91,7 +91,7 @@ class SonarQubeClient(
 
         result = {k: v for k, v in result.items() if v is not None}
 
-        source_response = self.get_source_raw(file_key=component)
+        source_response = await self.get_source_raw(file_key=component)
 
         if isinstance(source_response, dict) and "error" in source_response:
             logger.error(
@@ -108,7 +108,7 @@ class SonarQubeClient(
         page = 1
         page_size = 500
         while True:
-            issues_response = self.get_issues(
+            issues_response = await self.get_issues(
                 additional_fields="_all",
                 branch=branch,
                 components=component,
@@ -142,7 +142,7 @@ class SonarQubeClient(
                     "source_snippet": {},
                 }
 
-                rule_response = self.get_rule_details(rule_key=issue.get("rule"))
+                rule_response = await self.get_rule_details(rule_key=issue.get("rule"))
 
                 if isinstance(rule_response, dict) and "error" in rule_response:
                     logger.error(
@@ -162,7 +162,7 @@ class SonarQubeClient(
                         "impacts": rule.get("impacts"),
                     }
 
-                snippet_response = self.get_source_issue_snippets(issue_key=issue_key)
+                snippet_response = await self.get_source_issue_snippets(issue_key=issue_key)
                 if isinstance(snippet_response, dict) and "error" in snippet_response:
                     error_msg = f"Failed to fetch snippet for issue {issue_key}: {snippet_response.get('details', 'Unknown error')}"
                     logger.error(error_msg)
