@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Optional, Dict, Any
 from server import mcp, sonar_client
 
 
