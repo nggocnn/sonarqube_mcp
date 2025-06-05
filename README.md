@@ -1,1 +1,1 @@
-# sonarqube_mcp
+# SonarQube MCP Server

@@ -1,6 +1,6 @@
 {
     "mcpServers": {
-        "sonarqube": {
+        "sonarqube_stdio": {
             "command": "python",
             "args": [
                 "src/__main__.py"
@@ -9,6 +9,25 @@
                 "SONARQUBE_URL": "",
                 "SONARQUBE_TOKEN": ""
             }
-        }
+        },
+        "sonarqube_sse": {
+            "type": "sse",
+            "url": "http://127.0.0.1:8000/sse"
+        },
+        "sonarqube_docker": {
+        "command": "docker",
+        "args": [
+            "run",
+            "--rm",
+            "--name",
+            "sonarqube_mcp_server",
+            "-i",
+            "-e",
+            "SONARQUBE_URL=",
+            "-e",
+            "SONARQUBE_TOKEN=",
+            "nggocnn:sonarqube_mcp_server"
+        ]
+        },
     }
 }
