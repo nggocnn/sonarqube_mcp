@@ -34,11 +34,6 @@ class SonarQubeClient(
     quality gates/profiles, rules, and source code management. Initialize using
     the async `create` classmethod.
 
-    Example:
-        client = await SonarQube.create(base_url="http://sonarqube", token="token")
-        health = await client.get_system_health()
-        hotspots = await client.get_project_hotspots(project_key="my_project")
-        await client.close()
     """
 
     async def get_file_issues_information(
