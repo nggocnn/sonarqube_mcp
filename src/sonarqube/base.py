@@ -174,7 +174,6 @@ class SonarQubeBase:
         if not (isinstance(auth_response, dict) and auth_response.get("valid", False)):
             self.connection_message = "Invalid authentication response from SonarQube"
             logger.error(self.connection_message)
-            return False
 
         user_response = await self._make_request(
             endpoint="/api/users/current", health_check=True
