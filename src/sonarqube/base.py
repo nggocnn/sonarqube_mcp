@@ -46,6 +46,16 @@ class SonarQubeBase:
         if self._session:
             await self._session.aclose()
 
+        if self.base_url is None:
+            self.connection_message = "Missing SonarQube base URL."
+            logger.error(self.connection_message)
+            raise ValueError(self.connection_message)
+        
+        if self.token is None:
+            self.connection_message = "Missing SonarQube authentication token."
+            logger.error(self.connection_message)
+            raise ValueError(self.connection_message)
+
         self._session = httpx.AsyncClient(
             base_url=self.base_url,
             headers={
@@ -155,11 +165,7 @@ class SonarQubeBase:
         Returns:
             bool: True if connection and authentication are successful, False otherwise.
         """
-        if not self.base_url or not self.token:
-            self.connection_message = "Missing SONARQUBE_URL or SONARQUBE_TOKEN"
-            logger.error(self.connection_message)
-            return False
-
+        
         auth_response = await self._make_request(
             endpoint="/api/authentication/validate", health_check=True
         )
