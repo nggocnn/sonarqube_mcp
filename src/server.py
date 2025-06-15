@@ -3,7 +3,7 @@ import asyncio
 from mcp.server.fastmcp import FastMCP
 from sonarqube import SonarQubeClient
 
-mcp = FastMCP(name="SonarQube MCP Server")
+mcp = FastMCP(name="SonarQube MCP Server", host="0.0.0.0")
 
 SONARQUBE_URL = os.environ.get("SONARQUBE_URL", "http://localhost:9000")
 SONARQUBE_TOKEN = os.environ.get("SONARQUBE_TOKEN", "")
