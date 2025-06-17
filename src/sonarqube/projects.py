@@ -22,7 +22,7 @@ class SonarQubeProjects(SonarQubeBase):
             project_key (str): A unique key identifier for the project (max length: 400 characters).
             main_branch (str, optional): The name of the main branch (default: "main").
             new_code_definition_type (str, optional): The type of new code definition. Allowed values: "PREVIOUS_VERSION", "NUMBER_OF_DAYS", "REFERENCE_BRANCH" (defaults to main branch).
-            new_code_definition_value (Optional[str], optional): The value for the new code definition.
+            new_code_definition_value (str, optional new code definition.
                 Expected values:
                 - None for "PREVIOUS_VERSION" or "REFERENCE_BRANCH".
                 - A number between 1 and 90 for "NUMBER_OF_DAYS".
@@ -42,7 +42,9 @@ class SonarQubeProjects(SonarQubeBase):
 
         params = {k: v for k, v in params.items() if v is not None}
 
-        response = await self._make_request(endpoint=endpoint, method="POST", params=params)
+        response = await self._make_request(
+            endpoint=endpoint, method="POST", params=params
+        )
         if isinstance(response, dict) and "error" in response:
             logger.error(
                 f"Create project failed: {response.get('details', 'Unknown error')}"
@@ -53,18 +55,18 @@ class SonarQubeProjects(SonarQubeBase):
         self,
         analyzed_before: Optional[str] = None,
         page: int = 1,
-        page_size: int = 100,
+        page_size: int = 20,
         search: Optional[str] = None,
         projects: Optional[str] = None,
     ) -> Dict[str, Any]:
         """List SonarQube projects with optional filters.
 
         Args:
-            analyzed_before (Optional[str], optional): ISO-8601 date string (e.g., '2023-10-19') to filter projects analyzed before this date. Defaults to None.
+            analyzed_before (str, optional1 date string (e.g., '2023-10-19') to filter projects analyzed before this date. Defaults to None.
             page (int, optional): Page number for pagination (must be positive). Defaults to 1.
-            page_size (int, optional): Number of projects per page (must be positive, max 500). Defaults to 100.
-            search (Optional[str], optional): Search query to filter projects by name or key. Defaults to None.
-            projects (Optional[str], optional): Comma-separated list of project keys to retrieve specific projects. Defaults to None.
+            page_size (int, optional): Number of projects per page (must be positive, max 20). Defaults to 20.
+            search (str, optional): Search query to filter projects by name or key. Defaults to None.
+            projects (str, optional): Comma-separated list of project keys to retrieve specific projects. Defaults to None.
 
         Returns:
             Dict[str, Any]: Dictionary containing project list and pagination details, or an error response with 'error' and 'details' keys.
@@ -75,11 +77,11 @@ class SonarQubeProjects(SonarQubeBase):
 
         if page_size < 1:
             logger.error("page_size must be positive integers")
-            page_size = 100
+            page_size = 20
 
-        if page_size > 500:
-            logger.warning("Page size capped at 500 by SonarQube API")
-            page_size = 500
+        if page_size > 20:
+            logger.warning("Page size capped at 20")
+            page_size = 20
 
         endpoint = "/api/projects/search"
 
@@ -102,7 +104,7 @@ class SonarQubeProjects(SonarQubeBase):
         return response
 
     async def get_user_projects(
-        self, page: int = 1, page_size: int = 100
+        self, page: int = 1, page_size: int = 20
     ) -> Dict[str, Any]:
         """Retrieve a list of SonarQube projects for which the authenticated user has 'Administer' permission.
 
@@ -119,11 +121,11 @@ class SonarQubeProjects(SonarQubeBase):
 
         if page_size < 1:
             logger.error("page_size must be positive integers")
-            page_size = 100
+            page_size = 20
 
-        if page_size > 500:
-            logger.warning("Page size capped at 500 by SonarQube API")
-            page_size = 500
+        if page_size > 20:
+            logger.warning("Page size capped at 20")
+            page_size = 20
 
         endpoint = "/api/projects/search_my_projects"
 
@@ -142,7 +144,7 @@ class SonarQubeProjects(SonarQubeBase):
         """Retrieve a list of SonarQube projects that the authenticated user has permission to scan.
 
         Args:
-            search (Optional[str], optional): Search query to filter projects by name or key. Defaults to None.
+            search (str, optional): Search query to filter projects by name or key. Defaults to None.
 
         Returns: Dict[str, Any]: Dictionary containing a list of scannable projects, or an error response.
         """
@@ -162,16 +164,16 @@ class SonarQubeProjects(SonarQubeBase):
         category: Optional[str] = None,
         branch: Optional[str] = None,
         page: int = 1,
-        page_size: int = 100,
+        page_size: int = 20,
     ):
         """Retrieve a list of analyses for a specified SonarQube project, with optional filters.
 
         Args:
             project_key (str): The key of the project to retrieve analyses for.
-            category (Optional[str], optional): Event category to filter analyses (e.g., 'VERSION,QUALITY_GATE,OTHER'). Defaults to None. Possible values: VERSION, OTHER, QUALITY_PROFILE, QUALITY_GATE, DEFINITION_CHANGE, ISSUE_DETECTION, SQ_UPGRADE
-            branch (Optional[str], optional): Branch key to filter analyses (not available in Community Edition). Defaults to None.
+            category (str, optional): Event category to filter analyses (e.g., 'VERSION,QUALITY_GATE,OTHER'). Defaults to None. Possible values: VERSION, OTHER, QUALITY_PROFILE, QUALITY_GATE, DEFINITION_CHANGE, ISSUE_DETECTION, SQ_UPGRADE
+            branch (str, optional): Branch key to filter analyses (not available in Community Edition). Defaults to None.
             page (int, optional): Page number for pagination (must be positive). Defaults to 1.
-            page_size (int, optional): Number of analyses per page (must be positive, max 500). Defaults to 100.
+            page_size (int, optional): Number of analyses per page (must be positive, max 20). Defaults to 20.
 
         Returns:
             Dict[str, Any]: Dictionary containing a list of project analyses and pagination details, or an error response.
@@ -182,11 +184,11 @@ class SonarQubeProjects(SonarQubeBase):
 
         if page_size < 1:
             logger.error("page_size must be positive integers")
-            page_size = 100
+            page_size = 20
 
-        if page_size > 500:
-            logger.warning("Page size capped at 500 by SonarQube API")
-            page_size = 500
+        if page_size > 20:
+            logger.warning("Page size capped at 20")
+            page_size = 20
 
         endpoint = "/api/project_analyses/search"
 

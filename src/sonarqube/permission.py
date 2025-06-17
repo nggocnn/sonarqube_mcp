@@ -75,9 +75,9 @@ class SonarQubePermission(SonarQubeBase):
         """Fetches a list of group permissions for a specific project or globally.
 
         Args:
-            project_key (Optional[str], optional): The key of the project to fetch permissions for. If None, global permissions are returned. Defaults to None.
+            project_key (str, optional): The key of the project to fetch permissions for. If None, global permissions are returned. Defaults to None.
             page (int, optional): Page number for pagination (positive integer). Defaults to 1.
-            page_size (int, optional): Number of results per page (positive integer, max 100). Defaults to 20.
+            page_size (int, optional): Number of results per page (positive integer, max 20). Defaults to 20.
 
         Returns:
             Dict[str, Any]: A dictionary with group permission details.
@@ -91,9 +91,9 @@ class SonarQubePermission(SonarQubeBase):
             logger.error("page_size must be positive integers")
             page_size = 20
 
-        if page_size > 100:
-            logger.warning("Page size capped at 500 by SonarQube API")
-            page_size = 100
+        if page_size > 20:
+            logger.warning("Page size capped at 20")
+            page_size = 20
 
         endpoint = "/api/permissions/groups"
 
@@ -180,9 +180,9 @@ class SonarQubePermission(SonarQubeBase):
         """Fetches a list of users permissions for a specific project or globally.
 
         Args:
-            project_key (Optional[str], optional): The key of the project to fetch permissions for. If None, global permissions are returned. Defaults to None.
+            project_key (str, optional): The key of the project to fetch permissions for. If None, global permissions are returned. Defaults to None.
             page (int, optional): Page number for pagination (positive integer). Defaults to 1.
-            page_size (int, optional): Number of results per page (positive integer, max 100). Defaults to 20.
+            page_size (int, optional): Number of results per page (positive integer, max 20). Defaults to 20.
 
         Returns:
             Dict[str, Any]: A dictionary with users permission details.
@@ -196,9 +196,9 @@ class SonarQubePermission(SonarQubeBase):
             logger.error("page_size must be positive integers")
             page_size = 20
 
-        if page_size > 100:
-            logger.warning("Page size capped at 500 by SonarQube API")
-            page_size = 100
+        if page_size > 20:
+            logger.warning("Page size capped at 20")
+            page_size = 20
 
         endpoint = "/api/permissions/users"
 

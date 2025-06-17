@@ -5,24 +5,6 @@ from server import mcp, sonar_client
 @mcp.tool(
     description="""
 Search for issues in SonarQube projects with detailed filters.
-Parameters:
-- additional_fields (str, optional, comma-separated fields, e.g., 'comments,rules'). Possible values: _all, comments, languages, rules, ruleDescriptionContextKey, transitions, actions, users.
-- assigned (bool, optional, True for assigned, False for unassigned)
-- assignees (str, optional, comma-separated logins, e.g., 'user1,__me__').  The value '__me__' can be used as a placeholder for current user who performs the request
-- authors (str, optional, comma-separated SCM accounts, e.g., 'author1@example.com,linux@fondation.org')
-- components (str, optional, comma-separated list of component keys). Retrieve issues associated to a specific list of components (and all its descendants). A component can be a portfolio, project (use project_key), module, directory (use project_key:directory) or file (use_project_key:file_path).
-- issue_statuses (str, optional, comma-separated statuses, e.g., 'OPEN,FIXED'). Possible values: OPEN, CONFIRMED, FALSE_POSITIVE, ACCEPTED, FIXED.
-- issues (str, optional, comma-separated issue keys, e.g., '5bccd6e8-f525-43a2-8d76-fcb13dde79ef')
-- page (int, optional, positive integer, default=1)
-- page_size (int, optional, positive integer, max 500, default=100)
-- resolutions (str, optional, comma-separated resolutions, e.g., 'FIXED,FALSE-POSITIVE'). Possible values: FALSE-POSITIVE, WONTFIX, FIXED, REMOVED.
-- resolved (bool, optional, True for resolved, False for unresolved)
-- scopes (str, optional, comma-separated scopes, e.g., 'MAIN,TEST'). Possible values: MAIN, TEST.
-- severities (str, optional, comma-separated severities, e.g., 'BLOCKER,CRITICAL'). Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
-- tags (str, optional, comma-separated tags, e.g., 'security,bug')
-- types (str, optional, comma-separated types, e.g., 'BUG,VULNERABILITY'). Possible values: CODE_SMELL, BUG, VULNERABILITY.
-Returns: Dictionary with issue list and pagination info.
-Use to find specific issues based on multiple criteria.
 """
 )
 async def get_issues(
@@ -34,7 +16,7 @@ async def get_issues(
     issue_statuses: Optional[str] = None,
     issues: Optional[str] = None,
     page: int = 1,
-    page_size: int = 100,
+    page_size: int = 20,
     resolutions: Optional[str] = None,
     resolved: Optional[bool] = None,
     scopes: Optional[str] = None,
@@ -57,7 +39,7 @@ async def get_issues(
         issue_statuses (str, optional): Comma-separated statuses (e.g., 'OPEN,FIXED'). Defaults to None. Possible values: OPEN, CONFIRMED, FALSE_POSITIVE, ACCEPTED, FIXED.
         issues (str, optional): Comma-separated issue keys (e.g., '5bccd6e8-f525-43a2-8d76-fcb13dde79ef'). Defaults to None.
         page (int, optional): Page number for pagination (positive integer). Defaults to 1.
-        page_size (int, optional): Number of issues per page (positive integer, max 500). Defaults to 100.
+        page_size (int, optional): Number of issues per page (positive integer, max 20). Defaults to 20.
         resolutions (str, optional): Comma-separated resolutions (e.g., 'FIXED,FALSE-POSITIVE'). Defaults to None. Possible values: FALSE-POSITIVE, WONTFIX, FIXED, REMOVED.
         resolved (bool, optional): True for resolved issues, False for unresolved. Defaults to None.
         scopes (str, optional): Comma-separated scopes (e.g., 'MAIN,TEST'). Defaults to None. Possible values: MAIN, TEST.
@@ -92,16 +74,10 @@ async def get_issues(
 @mcp.tool(
     description="""
 Retrieve SCM authors of issues for a SonarQube project.
-Parameters:
-- project_key (str, optional, project key, e.g., 'my_project')
-- page (int, optional, positive integer, default=1)
-- page_size (int, optional, positive integer, max 100, default=10)
-Returns: Dictionary with list of SCM author accounts (e.g., emails).
-Use to identify contributors to issues in a project.
 """
 )
 async def get_issues_authors(
-    project_key: Optional[str] = None, page: int = 1, page_size: int = 10
+    project_key: Optional[str] = None, page: int = 1, page_size: int = 20
 ) -> Dict[str, Any]:
     """Retrieve SCM authors associated with issues in a SonarQube project.
 
@@ -110,7 +86,7 @@ async def get_issues_authors(
     Args:
         project_key (str, optional): Project key to filter authors (e.g., 'my_project'). Defaults to None.
         page (int, optional): Page number for pagination (positive integer). Defaults to 1.
-        page_size (int, optional): Number of authors per page (positive integer, max 100). Defaults to 100.
+        page_size (int, optional): Number of authors per page (positive integer, max 20). Defaults to 20.
 
     Returns:
         Dict[str, Any]: A dictionary with a list of SCM author accounts.

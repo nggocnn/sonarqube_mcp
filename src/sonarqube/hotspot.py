@@ -13,7 +13,7 @@ class SonarQubeHotSpot(SonarQubeBase):
         file_paths: Optional[str] = None,
         only_mine: Optional[bool] = None,
         page: int = 1,
-        page_size: int = 100,
+        page_size: int = 20,
         resolution: Optional[str] = None,
         status: Optional[str] = None,
     ):
@@ -24,12 +24,12 @@ class SonarQubeHotSpot(SonarQubeBase):
 
         Args:
             project_key (str): The key of the project (e.g., 'my_project'). Must be non-empty.
-            file_paths (Optional[str], optional): Comma-separated list of file paths to filter hotspots (e.g., 'src/main.java,src/utils.js'). Defaults to None.
+            file_paths (str, optional): Comma-separated list of file paths to filter hotspots (e.g., 'src/main.java,src/utils.js'). Defaults to None.
             only_mine (Optional[bool], optional): If True, return only hotspots assigned to the authenticated user. Defaults to None.
-            page (int, optional): Page number for pagination (positive integer, default=1).
-            page_size (int, optional): Number of hotspots per page (positive integer, max 500, default=100).
-            resolution (Optional[str], optional): Filter by resolution (e.g., 'FIXED', 'SAFE'). Defaults to None. Possible values: FIXED, SAFE, ACKNOWLEDGED.
-            status (Optional[str], optional): Filter by status (e.g., 'TO_REVIEW', 'REVIEWED'). Defaults to None. Possible values: TO_REVIEW, REVIEWED
+            page (int, optional): Page number for pagination (positive integer, default 1).
+            page_size (int, optional): Number of hotspots per page (positive integer, max 20, default 20).
+            resolution (str, optional): Filter by resolution (e.g., 'FIXED', 'SAFE'). Defaults to None. Possible values: FIXED, SAFE, ACKNOWLEDGED.
+            status (str, optional): Filter by status (e.g., 'TO_REVIEW', 'REVIEWED'). Defaults to None. Possible values: TO_REVIEW, REVIEWED
 
         Returns:
             Dict[str, Any]: A dictionary with hotspot details and pagination info.
@@ -47,12 +47,17 @@ class SonarQubeHotSpot(SonarQubeBase):
 
         if page_size < 1:
             logger.error("page_size must be positive integers")
-            page_size = 100
+            page_size = 20
+
+        if page_size > 20:
+            logger.warning("Page size capped at 20")
+            page_size = 20
 
         endpoint = "/api/hotspots/search"
 
         params = {
             "project": project_key,
+            "projectKey": project_key,
             "files": file_paths,
             "onlyMine": str(only_mine).lower() if only_mine is not None else None,
             "p": page,

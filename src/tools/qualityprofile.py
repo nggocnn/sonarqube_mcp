@@ -5,11 +5,6 @@ from server import mcp, sonar_client
 @mcp.tool(
     description="""
 Associate a quality profile with a project in SonarQube.
-Parameters:
-- language (str, required, programming language, e.g., 'java', 'py')
-- project_key (str, required, project key, e.g., 'my_project')
-- quality_profile (str, required, quality profile name, e.g., 'Sonar way')
-Use to link a quality profile to a project for code analysis.
 """
 )
 async def add_quality_profile_project(
@@ -37,11 +32,6 @@ async def add_quality_profile_project(
 @mcp.tool(
     description="""
 Remove a quality profile association from a project in SonarQube.
-Parameters:
-- language (str, required, programming language, e.g., 'java', 'py')
-- project_key (str, required, project key, e.g., 'my_project')
-- quality_profile (str, required, quality profile name, e.g., 'Sonar way')
-Use to disassociate a quality profile from a project.
 """
 )
 async def remove_quality_profile_project(
@@ -69,12 +59,6 @@ async def remove_quality_profile_project(
 @mcp.tool(
     description="""
 Retrieve SonarQube quality profiles.
-Parameters:
-- defaults (bool, optional, True to show only default profiles, default=False)
-- language (str, optional, programming language, e.g., 'java', 'py')
-- project_key (str, project key, e.g., 'my_project')
-Returns: Dictionary with quality profile details.
-Use to find quality profiles by language or project associations.
 """
 )
 async def get_quality_profiles(

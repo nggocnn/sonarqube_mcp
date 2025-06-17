@@ -14,7 +14,7 @@ class SonarQubeQualityProfile(SonarQubeBase):
         quality_profile: str,
     ):
         """Associates a quality profile with a project in SonarQube.
-        
+
         Args:
             language (str): The programming language of the quality profile (e.g., 'java', 'py').
             project_key (str): The key of the project to associate with the quality profile (e.g., 'my_project').
@@ -46,7 +46,7 @@ class SonarQubeQualityProfile(SonarQubeBase):
         quality_profile: str,
     ):
         """Removes a quality profile association from a project in SonarQube.
-        
+
         Args:
             language (str): The programming language of the quality profile (e.g., 'java', 'py').
             project_key (str): The key of the project to remove the quality profile from (e.g., 'my_project').
@@ -83,8 +83,8 @@ class SonarQubeQualityProfile(SonarQubeBase):
 
         Args:
             defaults (bool, optional): If True, return only default profiles. Defaults to False.
-            language (Optional[str], optional): Filter by programming language (e.g., 'java', 'py'). Defaults to None.
-            project_key (Optional[str], optional): Filter by project key (e.g., 'my_project'). Defaults to None.
+            language (str, optional): Filter by programming language (e.g., 'java', 'py'). Defaults to None.
+            project_key (str, optional): Filter by project key (e.g., 'my_project'). Defaults to None.
 
         Returns:
             Dict[str, Any]: A dictionary with quality profile details.

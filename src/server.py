@@ -7,6 +7,8 @@ mcp = FastMCP(name="SonarQube MCP Server", host="0.0.0.0")
 
 SONARQUBE_URL = os.environ.get("SONARQUBE_URL", "http://localhost:9000")
 SONARQUBE_TOKEN = os.environ.get("SONARQUBE_TOKEN", "")
+SONARQUBE_USERNAME = os.environ.get("SONARQUBE_USERNAME", "")
+SONARQUBE_PASSWORD = os.environ.get("SONARQUBE_PASSWORD", "")
 SONARQUBE_ORGANIZATION = os.environ.get("SONARQUBE_ORGANIZATION", None)
 
 
@@ -16,6 +18,8 @@ async def init_sonar_client() -> SonarQubeClient:
         client = await SonarQubeClient.create(
             base_url=SONARQUBE_URL,
             token=SONARQUBE_TOKEN,
+            username=SONARQUBE_USERNAME,
+            password=SONARQUBE_PASSWORD,
             organization=SONARQUBE_ORGANIZATION,
         )
         return client

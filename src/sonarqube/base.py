@@ -12,8 +12,10 @@ class SonarQubeBase:
         self,
         base_url: str,
         token: str,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
         organization: Optional[str] = None,
-        timeout: float = 10.0,
+        timeout: float = 60.0,
         max_connections: int = 20,
     ):
         """Initialize a SonarQube client instance.
@@ -21,12 +23,14 @@ class SonarQubeBase:
         Args:
             base_url (str): The base URL of the SonarQube server (e.g., 'https://sonarqube.example.com').
             token (str): The authentication token for accessing the SonarQube API.
-            organization (Optional[str], optional): The organization key for organization-specific requests. Defaults to None.
+            organization (str, optional): The organization key for organization-specific requests. Defaults to None.
             timeout (float, optional): The timeout for API requests in seconds. Defaults to 10.0.
             max_connections (int, optional): Maximum number of concurrent HTTP connections. Defaults to 20.
         """
         self.base_url = base_url.rstrip("/")
-        self.token = token.strip()
+        self.token = token.strip() if token else ""
+        self.username = username.strip() if username else "None"
+        self.password = password.strip() if password else ""
         self.organization = organization.strip() if organization else None
         self.timeout = timeout
         self.max_connections = max_connections
@@ -50,22 +54,37 @@ class SonarQubeBase:
             self.connection_message = "Missing SonarQube base URL."
             logger.error(self.connection_message)
             raise ValueError(self.connection_message)
-        
-        if self.token is None:
-            self.connection_message = "Missing SonarQube authentication token."
+
+        headers = None
+        auth = None
+
+        if self.token:
+            headers = {
+                "Authorization": f"Bearer {self.token}",
+                "Accept": "application/json",
+            }
+            auth = None
+        elif self.username:
+            headers = {
+                "Accept": "application/json",
+            }
+            auth = (self.username, self.password)
+        else:
+            self.connection_message = (
+                "Missing authentication: provide either a token or username/password"
+            )
             logger.error(self.connection_message)
             raise ValueError(self.connection_message)
 
         self._session = httpx.AsyncClient(
             base_url=self.base_url,
-            headers={
-                "Authorization": f"Bearer {self.token}",
-                "Accept": "application/json",
-            },
+            headers=headers,
+            auth=auth,
             timeout=httpx.Timeout(timeout=self.timeout),
             limits=httpx.Limits(
                 max_connections=self.max_connections, max_keepalive_connections=5
             ),
+            event_hooks={"request": [self._log_pool_status]},
         )
 
         if not await self._validate_connection():
@@ -73,6 +92,14 @@ class SonarQubeBase:
             self._session = None
             raise ConnectionError(
                 f"Failed to connect to SonarQube server at {self.base_url}: {self.connection_message}"
+            )
+
+    async def _log_pool_status(self, request):
+        """Log connection pool status to detect potentional bottlenecks."""
+        pool = self._session._transport._pool
+        if len(pool.connections) >= self.max_connections * 0.9:
+            logger.info(
+                f"Connection pool nearing limit: {len(pool.connections)}/{self.max_connections}"
             )
 
     async def _make_request(
@@ -121,7 +148,13 @@ class SonarQubeBase:
             }
 
         try:
+            logger.info(f"Request args: {request_args}")
             response = await self._session.request(**request_args)
+            logger.info(
+                f"Response content: {response.content}"
+                if response.content
+                else "Response is empty."
+            )
             response.raise_for_status()
 
             if raw_response:
@@ -165,7 +198,7 @@ class SonarQubeBase:
         Returns:
             bool: True if connection and authentication are successful, False otherwise.
         """
-        
+
         auth_response = await self._make_request(
             endpoint="/api/authentication/validate", health_check=True
         )
@@ -180,6 +213,7 @@ class SonarQubeBase:
         if not (isinstance(auth_response, dict) and auth_response.get("valid", False)):
             self.connection_message = "Invalid authentication response from SonarQube"
             logger.error(self.connection_message)
+            return False
 
         user_response = await self._make_request(
             endpoint="/api/users/current", health_check=True

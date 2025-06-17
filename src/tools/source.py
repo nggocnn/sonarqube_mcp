@@ -5,13 +5,6 @@ from server import mcp, sonar_client
 @mcp.tool(
     description="""
 Retrieve source code for a file in a SonarQube project.
-Parameters:
-- project_key (Required[str], project key, e.g., 'my_project')
-- file_path (Required[str], file path, e.g., 'src/main.java')
-- start (int, optional, positive integer for start line)
-- end (int, optional, positive integer, >= start, for end line)
-Returns: Dictionary with source code lines and line numbers.
-Use to view specific lines of a file's source code.
 """
 )
 async def get_source(
@@ -42,14 +35,6 @@ async def get_source(
 @mcp.tool(
     description="""
 Retrieve SCM information for a file in a SonarQube project.
-Parameters:
-- project_key (Required[str], project key, e.g., 'my_project')
-- file_path (Required[str], file path, e.g., 'src/main.java')
-- start (int, optional, positive integer for start line)
-- end (int, optional, positive integer, >= start, for end line)
-- commits_by_line (bool, True to list commits per line, False to group by commit, default=False)
-Returns: Dictionary with SCM details (author, date, revision) per line.
-Use to track changes and contributors for a file.
 """
 )
 async def get_scm_info(
@@ -87,11 +72,6 @@ async def get_scm_info(
 @mcp.tool(
     description="""
 Retrieve raw source code as plain text for a file in a SonarQube project.
-Parameters:
-- project_key (Required[str], project key, e.g., 'my_project')
-- file_path (Required[str], file path, e.g., 'src/main.java')
-Returns: String with raw source code.
-Use to get the full file content as plain text.
 """
 )
 async def get_source_raw(project_key: str, file_path: str) -> str:
@@ -112,10 +92,6 @@ async def get_source_raw(project_key: str, file_path: str) -> str:
 @mcp.tool(
     description="""
 Retrieve code snippets for a specific SonarQube issue.
-Parameters:
-- issue_key (Required[str], issue key)
-Returns: Dictionary with code snippets around the issue location.
-Use to view source code context for an issue.
 """
 )
 async def get_source_issue_snippets(issue_key: str):
@@ -138,15 +114,14 @@ async def get_source_issue_snippets(issue_key: str):
 @mcp.tool(
     description="""
 Retrieve issues, rule details, source code snippets, and full file source for a specific file in a SonarQube project.
-Parameters:
-- project_key (Required[str], project key, e.g., 'my_project')
-- file_path (Required[str], file path, e.g., 'src/main/java/Example.java')
-Returns: Dictionary with issues (including rule details and snippets) and full file source.
-Use to gather comprehensive issue data for a file to recommend code fixes.
 """
 )
 async def get_file_issues_information(
-    project_key: str, file_path: str
+    project_key: str,
+    file_path: str,
+    include_source: bool = True,
+    page: int = 1,
+    page_size: int = 20,
 ) -> Dict[str, Any]:
     """Retrieve issues, rule details, source code snippets, and full file source for a specific file in a SonarQube project.
 
@@ -157,6 +132,9 @@ async def get_file_issues_information(
     Args:
         project_key (str): The key of the project (e.g., 'my_project'). Must be non-empty.
         file_path (str): The file path within the project (e.g., 'src/main/java/Example.java'). Must be non-empty.
+        include_source(bool, opitional): Whether include raw source code or not. Default to True.
+        page (int, optional): Page number for pagination (must be positive). Defaults to 1.
+        page_size (int, optional): Number of issues per page (must be positive, max 20). Defaults to 20.
 
     Returns:
         Dict[str, Any]: A dictionary containing issues with their rule details, source code snippets, and full file source.

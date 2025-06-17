@@ -5,16 +5,6 @@ from server import mcp, sonar_client
 @mcp.tool(
     description="""
 Retrieve security hotspots in a SonarQube project.
-Parameters:
-- project_key (Required[str, project key, e.g., 'my_project')
-- file_paths (str, optional, comma-separated file paths, e.g., 'src/main.java,src/utils.js')
-- only_mine (bool, optional, True to show only current user's hotspots, default=None)
-- page (int, optional, positive integer for page number, default=1)
-- page_size (int, optional, positive integer, max 500, default=100)
-- resolution (str, optional, resolution filter, e.g., 'FIXED', 'SAFE'). Possible values: FIXED, SAFE, ACKNOWLEDGED
-- status (str, optional, status filter, e.g., 'TO_REVIEW', 'REVIEWED'). Possible values: TO_REVIEW, REVIEWED
-Returns: Dictionary with hotspot list and pagination info.
-Use to identify and filter security hotspots in a project.
 """
 )
 async def get_project_hotspots(
@@ -22,7 +12,7 @@ async def get_project_hotspots(
     file_paths: Optional[str] = None,
     only_mine: Optional[bool] = None,
     page: int = 1,
-    page_size: int = 100,
+    page_size: int = 20,
     resolution: Optional[str] = None,
     status: Optional[str] = None,
 ) -> Dict[str, Any]:
@@ -34,8 +24,8 @@ async def get_project_hotspots(
         project_key (str): The key of the project (e.g., 'my_project'). Must be non-empty.
         file_paths (str, optional): Comma-separated list of file paths to filter hotspots (e.g., 'src/main.java,src/utils.js'). Defaults to None.
         only_mine (bool, optional): If True, return only hotspots assigned to the authenticated user. Defaults to None.
-        page (int, optional): Page number for pagination (positive integer, default=1).
-        page_size (int, optional): Number of hotspots per page (positive integer, max 500, default=100).
+        page (int, optional): Page number for pagination (positive integer, default 1).
+        page_size (int, optional): Number of hotspots per page (positive integer, max 20, default 20).
         resolution (str, optional): Filter by resolution (e.g., 'FIXED', 'SAFE'). Possible values: FIXED, SAFE, ACKNOWLEDGED.
         status (str, optional): Filter by status (e.g., 'TO_REVIEW', 'REVIEWED'). Possible values: TO_REVIEW, REVIEWED.
 
@@ -58,10 +48,6 @@ async def get_project_hotspots(
 @mcp.tool(
     description="""
 Retrieve details of a specific SonarQube security hotspot.
-Parameters:
-- hotspot_key (Required[str], hotspot key)
-Returns: Dictionary with hotspot details.
-Use to inspect a specific hotspot's properties.
 """
 )
 async def get_hotspot_detail(hotspot_key: str):

@@ -18,7 +18,7 @@ class SonarQubeIssue(SonarQubeBase):
         issue_statuses: Optional[str] = None,
         issues: Optional[str] = None,
         page: int = 1,
-        page_size: int = 100,
+        page_size: int = 20,
         resolutions: Optional[str] = None,
         resolved: Optional[bool] = None,
         scopes: Optional[str] = None,
@@ -29,22 +29,22 @@ class SonarQubeIssue(SonarQubeBase):
         """Search for issues in SonarQube projects with specified filters.
 
         Args:
-            additional_fields (Optional[str], optional): Comma-separated list of optional fields to include in the response (e.g., 'comments,rules'). Defaults to None. Possible values: _all, comments, languages, rules, ruleDescriptionContextKey, transitions, actions, users.
+            additional_fields (str, optional): Comma-separated list of optional fields to include in the response (e.g., 'comments,rules'). Defaults to None. Possible values: _all, comments, languages, rules, ruleDescriptionContextKey, transitions, actions, users.
             assigned (Optional[bool], optional): Filter for assigned (True) or unassigned (False) issues. Defaults to None.
-            assignees (Optional[str], optional): Comma-separated list of assignee logins, '__me__' for the current user. Defaults to None.
-            authors (Optional[str], optional): Comma-separated list of SCM author accounts. For example: torvalds@linux-foundation.org,linux@fondation.org . Defaults to None.
-            branch (Optional[str], optional): Branch key to filter issues (not available in Community Edition). Defaults to None.
-            components (Optional[str], optional): Comma-separated list of component keys. Retrieve issues associated to a specific list of components (and all its descendants). A component can be a portfolio, project, module, directory or file.
-            issue_statuses (Optional[str], optional): Comma-separated list of issue statuses (e.g., 'OPEN,CONFIRMED,FIXED'). Defaults to None. Possible values: OPEN, CONFIRMED, FALSE_POSITIVE, ACCEPTED, FIXED.
-            issues (Optional[str], optional): Comma-separated list of issue keys to retrieve specific issues. Defaults to None.
+            assignees (str, optional): Comma-separated list of assignee logins, '__me__' for the current user. Defaults to None.
+            authors (str, optional): Comma-separated list of SCM author accounts. For example: torvalds@linux-foundation.org,linux@fondation.org . Defaults to None.
+            branch (str, optional): Branch key to filter issues (not available in Community Edition). Defaults to None.
+            components (str, optional): Comma-separated list of component keys. Retrieve issues associated to a specific list of components (and all its descendants). A component can be a portfolio, project, module, directory or file.
+            issue_statuses (str, optional): Comma-separated list of issue statuses (e.g., 'OPEN,CONFIRMED,FIXED'). Defaults to None. Possible values: OPEN, CONFIRMED, FALSE_POSITIVE, ACCEPTED, FIXED.
+            issues (str, optional): Comma-separated list of issue keys to retrieve specific issues. Defaults to None.
             page (int, optional): Page number for pagination (must be positive). Defaults to 1.
-            page_size (int, optional): Number of issues per page (must be positive, max 500). Defaults to 100.
-            resolutions (Optional[str], optional): Comma-separated list of resolutions (e.g., 'FIXED,FALSE-POSITIVE'). Defaults to None. Possible values: FALSE-POSITIVE, WONTFIX, FIXED, REMOVED.
+            page_size (int, optional): Number of issues per page (must be positive, max 20). Defaults to 20.
+            resolutions (str, optional): Comma-separated list of resolutions (e.g., 'FIXED,FALSE-POSITIVE'). Defaults to None. Possible values: FALSE-POSITIVE, WONTFIX, FIXED, REMOVED.
             resolved (Optional[bool], optional): Filter for resolved (True) or unresolved (False) issues. Defaults to None.
-            scopes (Optional[str], optional): Comma-separated list of scopes (e.g., 'MAIN,TEST'). Defaults to None. Possible values: MAIN, TEST.
-            severities (Optional[str], optional): Comma-separated list of severities (e.g., 'BLOCKER,CRITICAL'). Defaults to None. Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
-            tags (Optional[str], optional): Comma-separated list of issue tags (e.g., 'security,convention'). Defaults to None.
-            types (Optional[str], optional): Comma-separated list of issue types (e.g., 'BUG,VULNERABILITY'). Defaults to None. Possible values: CODE_SMELL, BUG, VULNERABILITY.
+            scopes (str, optional): Comma-separated list of scopes (e.g., 'MAIN,TEST'). Defaults to None. Possible values: MAIN, TEST.
+            severities (str, optional): Comma-separated list of severities (e.g., 'BLOCKER,CRITICAL'). Defaults to None. Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
+            tags (str, optional): Comma-separated list of issue tags (e.g., 'security,convention'). Defaults to None.
+            types (str, optional): Comma-separated list of issue types (e.g., 'BUG,VULNERABILITY'). Defaults to None. Possible values: CODE_SMELL, BUG, VULNERABILITY.
 
         Returns:
             Dict[str, Any]: Dictionary containing a list of issues and pagination details, or an error response.
@@ -55,11 +55,11 @@ class SonarQubeIssue(SonarQubeBase):
 
         if page_size < 1:
             logger.error("page_size must be positive integers")
-            page_size = 100
+            page_size = 20
 
-        if page_size > 500:
-            logger.warning("Page size capped at 500 by SonarQube API")
-            page_size = 500
+        if page_size > 20:
+            logger.warning("Page size capped at 20")
+            page_size = 20
 
         endpoint = "/api/issues/search"
 
@@ -107,8 +107,8 @@ class SonarQubeIssue(SonarQubeBase):
         """Retrieve SCM authors for issues in a SonarQube project, with optional filtering.
 
         Args:
-            project_key (Optional[str], optional): Project key to filter authors. Defaults to None.
-            query (Optional[str], optional): Search query to filter authors by SCM account (partial match). Defaults to None.
+            project_key (str, optional): Project key to filter authors. Defaults to None.
+            query (str, optional): Search query to filter authors by SCM account (partial match). Defaults to None.
             page (int, optional): Page number for pagination (must be positive). Defaults to 1.
             page_size (int, optional): Number of authors per page (must be positive, max 100). Defaults to 10.
 

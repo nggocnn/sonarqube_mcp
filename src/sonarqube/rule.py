@@ -10,7 +10,7 @@ class SonarQubeRule(SonarQubeBase):
     async def get_rules(
         self,
         page: int = 1,
-        page_size: int = 100,
+        page_size: int = 20,
         severities: Optional[str] = None,
         statuses: Optional[str] = None,
         languages: Optional[str] = None,
@@ -21,12 +21,12 @@ class SonarQubeRule(SonarQubeBase):
         Retrieves a paginated list of rules, optionally filtered by severity, status, or type.
 
         Args:
-            page (int, optional): Page number for pagination (positive integer, default=1).
-            page_size (int, optional): Number of rules per page (positive integer, max 500, default=100).
-            severities (Optional[str], optional): Comma-separated list of severities (e.g., 'BLOCKER,CRITICAL'). Defaults to None. Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
-            statuses (Optional[str], optional): Comma-separated list of statuses (e.g., 'BETA,READY'). Defaults to None. Possible values: BETA, DEPRECATED, READY, REMOVED.
-            languages (Optional[str], optional): Comma-separated list of languages (e.g. 'java,js'). Defaults to None
-            types (Optional[str], optional): Comma-separated list of rule types (e.g., 'BUG,CODE_SMELL'). Defaults to None. Possible values: CODE_SMELL, BUG, VULNERABILITY, SECURITY_HOTSPOT.
+            page (int, optional): Page number for pagination (positive integer, default 1).
+            page_size (int, optional): Number of rules per page (positive integer, max 20, default 20).
+            severities (str, optional): Comma-separated list of severities (e.g., 'BLOCKER,CRITICAL'). Defaults to None. Possible values: INFO, MINOR, MAJOR, CRITICAL, BLOCKER.
+            statuses (str, optional): Comma-separated list of statuses (e.g., 'BETA,READY'). Defaults to None. Possible values: BETA, DEPRECATED, READY, REMOVED.
+            languages (str, optional): Comma-separated list of languages (e.g. 'java,js'). Defaults to None
+            types (str, optional): Comma-separated list of rule types (e.g., 'BUG,CODE_SMELL'). Defaults to None. Possible values: CODE_SMELL, BUG, VULNERABILITY, SECURITY_HOTSPOT.
 
         Returns:
             Dict[str, Any]: A dictionary with rule details and pagination info.
@@ -37,11 +37,11 @@ class SonarQubeRule(SonarQubeBase):
 
         if page_size < 1:
             logger.error("page_size must be positive integers")
-            page_size = 100
+            page_size = 20
 
-        if page_size > 500:
-            logger.warning("Page size capped at 500 by SonarQube API")
-            page_size = 500
+        if page_size > 20:
+            logger.warning("Page size capped at 20")
+            page_size = 20
 
         endpoint = "/api/rules/search"
 

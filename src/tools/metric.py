@@ -5,9 +5,6 @@ from server import mcp, sonar_client
 @mcp.tool(
     description="""
 Retrieve all available metric types in SonarQube.
-Parameters: None
-Returns: Dictionary with list of metric types (e.g., 'INT', 'FLOAT').
-Use to understand metric data formats before querying metrics.
 """
 )
 async def get_metrics_type() -> Dict[str, Any]:
@@ -24,21 +21,16 @@ async def get_metrics_type() -> Dict[str, Any]:
 @mcp.tool(
     description="""
 Retrieve all available metrics in SonarQube with pagination.
-Parameters:
-- page (int, positive integer, default=1)
-- page_size (int, positive integer, max 500, default=100)
-Returns: Dictionary with metric list and pagination info.
-Use to explore metrics like 'ncloc', 'complexity' for analysis.
 """
 )
-async def get_metrics(page: int = 1, page_size: int = 100) -> Dict[str, Any]:
+async def get_metrics(page: int = 1, page_size: int = 20) -> Dict[str, Any]:
     """Retrieve all available metrics in SonarQube with pagination.
 
     Lists metrics (e.g., 'complexity') with details like name, type, and domain.
 
     Args:
         page (int, optional): Page number for pagination (positive integer). Defaults to 1.
-        page_size (int, optional): Number of metrics per page (positive integer, max 500). Defaults to 100.
+        page_size (int, optional): Number of metrics per page (positive integer, max 20). Defaults to 20.
 
     Returns:
         Dict[str, Any]: A dictionary with metric details and pagination info.

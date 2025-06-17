@@ -5,9 +5,6 @@ from server import mcp, sonar_client
 @mcp.tool(
     description="""
 List all quality gates defined in SonarQube.
-Parameters: None
-Returns: Dictionary with list of quality gate names and IDs.
-Use to view available quality gates for project assignments.
 """
 )
 async def get_quality_gates() -> Dict[str, Any]:
@@ -24,10 +21,6 @@ async def get_quality_gates() -> Dict[str, Any]:
 @mcp.tool(
     description="""
 Retrieve details of a specific SonarQube quality gate.
-Parameters:
-- name (Required[str], quality gate name, e.g., 'Sonar way')
-Returns: Dictionary with quality gate conditions and thresholds.
-Use to inspect quality gate criteria for compliance checks.
 """
 )
 async def get_quality_gates_details(name: str) -> Dict[str, Any]:
@@ -48,10 +41,6 @@ async def get_quality_gates_details(name: str) -> Dict[str, Any]:
 @mcp.tool(
     description="""
 Get the quality gate associated with a SonarQube project.
-Parameters:
-- project_key (Required[str, project key, e.g., 'my_project')
-Returns: Dictionary with assigned quality gate details.
-Use to check which quality gate is applied to a project.
 """
 )
 async def get_quality_gates_by_project(project_key: str) -> Dict[str, Any]:
@@ -72,12 +61,6 @@ async def get_quality_gates_by_project(project_key: str) -> Dict[str, Any]:
 @mcp.tool(
     description="""
 Retrieve quality gate status for a SonarQube project or analysis.
-Parameters:
-- analysis_id (str, optional, analysis ID)
-- project_key (str, optional, project key, e.g., 'my_project')
-Exactly one of analysis_id or project_key must be provided.
-Returns: Dictionary with quality gate status (e.g., 'OK', 'ERROR') and conditions.
-Use to evaluate quality gate results for a project or analysis.
 """
 )
 async def get_quality_gates_project_status(

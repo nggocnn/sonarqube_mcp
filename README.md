@@ -28,11 +28,13 @@ Ask your AI Agent to:
 
 ## Configuration
 
-| Name | Description | Default Value |
-| --- | --- | --- |
-| `SONARQUBE_URL` | SonarQube server URL | `"http://localhost:9000"` |
-| `SONARQUBE_TOKEN` | SonarQube authentication token |  |
-| `SONARQUBE_ORGANIZATION` | SonarQube organization name | `None` |
+| Name                     | Description                    | Default Value             |
+| ------------------------ | ------------------------------ | ------------------------- |
+| `SONARQUBE_URL`          | SonarQube server URL           | `"http://localhost:9000"` |
+| `SONARQUBE_TOKEN`        | SonarQube authentication token |                           |
+| `SONARQUBE_USERNAME`     | SonarQube Username / Token     | `None`                    |
+| `SONARQUBE_PASSWORD`     | SonarQube Password             | `None`                    |
+| `SONARQUBE_ORGANIZATION` | SonarQube organization name    | `None`                    |
 
 ### Install Dependencies
 
@@ -71,6 +73,9 @@ The MCP Server supports the following transport methods: `stdio`, `sse`, or `str
 #### sse
 
 ```bash
+export SONARQUBE_URL="<sonarqube_url>"
+export SONARQUBE_TOKEN="<sonarqube_token>"
+
 python src/__main__.py --transport sse
 
 # or

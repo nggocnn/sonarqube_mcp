@@ -5,15 +5,6 @@ from server import mcp, sonar_client
 @mcp.tool(
     description="""
 Create a new SonarQube project.
-Parameters:
-- project_name (str, required, project name, e.g., 'SonarQube', max 500 characters)
-- project_key (str, required, unique project key, e.g., 'my_project', max 400 characters)
-- main_branch (str, optional, main branch name, e.g., 'develop', default='main')
-- new_code_definition_type (str, optional, new code definition type, e.g., 'NUMBER_OF_DAYS', values: PREVIOUS_VERSION, NUMBER_OF_DAYS, REFERENCE_BRANCH)
-- new_code_definition_value (str, optional, new code definition value, e.g., '30' for NUMBER_OF_DAYS, 1-90)
-- visibility (str, optional, project visibility, e.g., 'public', values: private, public)
-Returns: Dictionary with created project details.
-Use to create a new project.
 """
 )
 async def create_project(
@@ -29,8 +20,8 @@ async def create_project(
         project_name (str): The name of the project (max length: 500 characters, abbreviated if longer).
         project_key (str): A unique key identifier for the project (max length: 400 characters).
         main_branch (str, optional): The name of the main branch (default: "main"). Available since version 9.8.
-        new_code_definition_type (Optional[str], optional): The type of new code definition. Allowed values: "PREVIOUS_VERSION", "NUMBER_OF_DAYS", "REFERENCE_BRANCH" (defaults to main branch). Available since version 10.1.
-        new_code_definition_value (Optional[str], optional): The value for the new code definition. Expected values:
+        new_code_definition_type (str, optionale of new code definition. Allowed values: "PREVIOUS_VERSION", "NUMBER_OF_DAYS", "REFERENCE_BRANCH" (defaults to main branch). Available since version 10.1.
+        new_code_definition_value (str, optional): The value for the new code definition. Expected values:
             - None for "PREVIOUS_VERSION" or "REFERENCE_BRANCH".
             - A number between 1 and 90 for "NUMBER_OF_DAYS".
 
@@ -50,15 +41,6 @@ async def create_project(
 @mcp.tool(
     description="""
 Search for SonarQube projects with optional name or key filtering.
-Parameters:
-- projects (str, comma-separated project keys, e.g., 'my_project,other_project')
-- search (str, partial project name or key, e.g., 'my_proj')
-- analyzed_before (str, date or datetime for last analysis, e.g., '2017-10-19' or '2017-10-19T13:00:00+0200')
-- page (int, positive integer, default=1)
-- page_size (int, positive integer, max 500, default=100)
-Exactly one of projects or search must be provided.
-Returns: Dictionary with project list and pagination info.
-Use to find projects by name, key, or last analysis date.
 """
 )
 async def get_projects(
@@ -66,7 +48,7 @@ async def get_projects(
     search: Optional[str] = None,
     analyzed_before: Optional[str] = None,
     page: int = 1,
-    page_size: int = 100,
+    page_size: int = 20,
 ) -> Dict[str, Any]:
     """Search for projects in SonarQube, with optional filtering by name.
 
@@ -77,7 +59,7 @@ async def get_projects(
     search (str, optional): Partial project name or key to filter results (e.g., 'my_proj'). Defaults to None.
     analyzed_before (str, optional): Filter projects where the last analysis of all branches is older than this date (exclusive, server timezone). Accepts date ('YYYY-MM-DD') or datetime ('YYYY-MM-DDThh:mm:ssZ'). Example: '2017-10-19' or '2017-10-19T13:00:00+0200'. Defaults to None.
     page (int, optional): Page number for pagination (positive integer). Defaults to 1.
-    page_size (int, optional): Number of projects per page (positive integer, max 500). Defaults to 100.
+    page_size (int, optional): Number of projects per page (positive integer, max 20). Defaults to 20.
 
     Returns:
     Dict[str, Any]: A dictionary with project details and pagination info.
@@ -95,21 +77,16 @@ async def get_projects(
 @mcp.tool(
     description="""
 List projects accessible to the authenticated user
-Parameters:
-- page (int, positive integer, default=1)
-- page_size (int, positive integer, max 500, default=100)
-Returns: Dictionary with project list and pagination info.
-Use to view projects the user can administer.
 """
 )
-async def get_user_projects(page: int = 1, page_size: int = 100) -> Dict[str, Any]:
+async def get_user_projects(page: int = 1, page_size: int = 20) -> Dict[str, Any]:
     """Lists projects accessible to the authenticated user.
 
     Retrieves a paginated list of projects the user can administer.
 
     Args:
         page (int, optional): Page number for pagination (positive integer). Defaults to 1.
-        page_size (int, optional): Number of projects per page (positive integer, max 500). Defaults to 100.
+        page_size (int, optional): Number of projects per page (positive integer, max 20). Defaults to 20.
 
     Returns:
         Dict[str, Any]: A dictionary with project details and pagination info.
@@ -121,10 +98,6 @@ async def get_user_projects(page: int = 1, page_size: int = 100) -> Dict[str, An
 @mcp.tool(
     description="""
 List projects the authenticated user can scan.
-Parameters:
-- search (str, optional) partial project name or key, e.g., 'my_proj')
-Returns: Dictionary with project list.
-Use to identify projects where the user can perform analysis.
 """
 )
 async def get_user_scannable_projects(search: Optional[str] = None) -> Dict[str, Any]:
@@ -145,20 +118,13 @@ async def get_user_scannable_projects(search: Optional[str] = None) -> Dict[str,
 @mcp.tool(
     description="""
 List analyses for a SonarQube project with optional filters.
-Parameters:
-- project_key (Required[str], project key, e.g., 'my_project')
-- category (str, optional, event category, e.g., 'VERSION', 'QUALITY_GATE'). Possible values: VERSION, OTHER, QUALITY_PROFILE, QUALITY_GATE, DEFINITION_CHANGE, ISSUE_DETECTION, SQ_UPGRADE
-- page (int, positive integer, default=1)
-- page_size (int, positive integer, max 500, default=100)
-Returns: Dictionary with analysis list and pagination info.
-Use to review a project's analysis history.
 """
 )
 async def get_project_analyses(
     project_key: str,
     category: Optional[str] = None,
     page: int = 1,
-    page_size: int = 100,
+    page_size: int = 20,
 ):
     """List analyses for a specified SonarQube project, with optional filters.
 
@@ -168,7 +134,7 @@ async def get_project_analyses(
         project_key (str): The key of the project (e.g., 'my_project').
         category (str, optional): Event category to filter analyses (e.g., 'VERSION', 'QUALITY_GATE'). Possible values: VERSION, OTHER, QUALITY_PROFILE, QUALITY_GATE, DEFINITION_CHANGE, ISSUE_DETECTION, SQ_UPGRADE. Defaults to None.
         page (int, optional): Page number for pagination (positive integer). Defaults to 1.
-        page_size (int, optional): Number of analyses per page (positive integer, max 500). Defaults to 100.
+        page_size (int, optional): Number of analyses per page (positive integer, max 20). Defaults to 20.
 
     Returns:
         Dict[str, Any]: A dictionary with analysis details and pagination info.

@@ -5,11 +5,6 @@ from server import mcp, sonar_client
 @mcp.tool(
     description="""
 Check the health status of a SonarQube server.
-Returns: Dictionary with health status ('GREEN', 'YELLOW', 'RED') and node details.
-- GREEN: SonarQube is fully operational
-- YELLOW: SonarQube is usable, but it needs attention in order to be fully operational
-- RED: SonarQube is not operational
-Use to monitor server availability and performance.
 """
 )
 async def get_system_health() -> Dict[str, Any]:
@@ -24,14 +19,6 @@ async def get_system_health() -> Dict[str, Any]:
 @mcp.tool(
     description="""
 Retrieve the operational status of a SonarQube server.
-Returns: Dictionary with status ('UP', 'DOWN', 'STARTING'), version, and description.
-- STARTING: SonarQube Web Server is up and serving some Web Services (eg. api/system/status) but initialization is still ongoing
-- UP: SonarQube instance is up and running
-- DOWN: SonarQube instance is up but not running because migration has failed or some other reason (check logs).
-- RESTARTING: SonarQube instance is still up but a restart has been requested.
-- DB_MIGRATION_NEEDED: database migration is required.
-- DB_MIGRATION_RUNNING: DB migration is running.
-Use to verify if the server is fully operational.
 """
 )
 async def get_system_status() -> Dict[str, Any]:
@@ -48,9 +35,6 @@ async def get_system_status() -> Dict[str, Any]:
 @mcp.tool(
     description="""
 Ping the SonarQube server to verify connectivity.
-Parameters: None
-Returns: Boolean (True for 'pong', False otherwise).
-Use for quick server reachability checks before other operations.
 """
 )
 async def system_ping() -> bool:
